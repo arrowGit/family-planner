@@ -1,0 +1,22 @@
+{
+  "name": "Family Planner",
+  "short_name": "Planner",
+  "start_url": "/family-planner/index.html",
+  "scope": "/family-planner/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/family-planner/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/family-planner/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
