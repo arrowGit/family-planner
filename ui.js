@@ -1,4 +1,19 @@
 import { state } from './state.js';
+import * as api from './api.js';
+
+export function renderAuth() {
+  const el = document.getElementById('auth');
+
+  if (state.user) {
+    el.innerHTML = `👤 ${state.user.email}`;
+    document.getElementById('app').style.display = 'block';
+  } else {
+    el.innerHTML = `<button id="loginBtn">Login</button>`;
+
+    document.getElementById('loginBtn').onclick = async () => {
+      const email = prompt('email');
+      await api.login(email);
+      alert('Перевір пошту');
     };
   }
 }
@@ -39,11 +54,4 @@ export function renderInventory(items) {
 }
 
 export function renderShopping(items) {
-  const el = document.getElementById('shopping');
-
-  el.innerHTML = items.map(i => `
-    <div>
-      ${i.product_id} → купити: ${i.to_buy}
-    </div>
-  `).join('');
 }
