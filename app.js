@@ -1,5 +1,7 @@
 import { state } from './state.js';
+import * as api from './api.js';
 import * as ui from './ui.js';
+import { supabase } from './supabase.js';
 
 async function init() {
   state.user = await api.getSession();
