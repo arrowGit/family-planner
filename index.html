@@ -892,6 +892,28 @@ function fillIngredientDropdown() {
   ).join('');
 }
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/family-planner/sw.js')
+    .then(reg => {
+      console.log('SW registered');
+
+      // авто-оновлення
+      reg.onupdatefound = () => {
+        const newWorker = reg.installing;
+
+        newWorker.onstatechange = () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('New version available');
+
+            if (confirm('Оновити додаток?')) {
+              window.location.reload();
+            }
+          }
+        };
+      };
+    });
+}
+  
 </script>
 
 </body>
