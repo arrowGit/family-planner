@@ -57,6 +57,8 @@ async function loadAppData(force = false) {
     renderApp();
     initTabs();
     ui.renderCalendar();
+    const today = new Date().toISOString().slice(0,10);
+    await loadDay(today);
      
   } catch (err) {
     console.error(err);
@@ -142,7 +144,6 @@ async function addItem() {
     user_id: state.user.id
   });
 
-  const date = document.getElementById('date').value;
   await loadDay(date); // тільки день, не все
 }
 
@@ -249,6 +250,5 @@ window.saveMenuItem = async () => {
   });
 
   closeModal();
-  const date = document.getElementById('date').value;
   await loadDay(date);
 };
