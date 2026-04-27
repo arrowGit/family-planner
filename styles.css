@@ -22,6 +22,34 @@ input, select {
   border-radius: 6px;
 }
 
+.meal-block {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.meal-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.menu-item button {
+  margin-left: 5px;
+}
+
+.add-btn {
+  margin-top: 8px;
+  width: 100%;
+}
+
 .day {
   padding: 8px;
   min-height: 70px;
