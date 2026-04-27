@@ -59,6 +59,11 @@ export async function getProducts() {
   );
 }
 
+export async function addProduct(product) {
+  return await handle(
+    supabase.from('products').insert(product)
+  );
+}
 /* =========================
    RECIPES
 ========================= */
@@ -68,6 +73,12 @@ export async function getRecipes() {
     supabase
       .from('recipes')
       .select('*')
+  );
+}
+
+export async function addRecipe(recipe) {
+  return await handle(
+    supabase.from('recipes').insert(recipe)
   );
 }
 
