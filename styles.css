@@ -8,9 +8,43 @@ body {
   font-size: 1rem;
 }
 
+button, input, select {
+  font-size: 1rem;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+button {
+  border-radius: 8px;
+}
+
+input, select {
+  border-radius: 6px;
+}
+
+.day {
+  padding: 8px;
+  min-height: 70px;
+  font-size: 0.9rem;
+}
+
+.overlay-content {
+  width: 90%;
+  max-width: 400px;
+}
+
 @media (max-width: 600px) {
   html {
     font-size: 18px;
+  }
+    .calendar {
+    gap: 4px;
+  }
+
+  .day {
+    min-height: 60px;
+    font-size: 0.8rem;
+    padding: 6px;
   }
 }
 
