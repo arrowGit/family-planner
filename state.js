@@ -4,5 +4,7 @@ export const state = {
   products: [],
   recipes: [],
   menu: [],
-  pantry: []
+  pantry: [],
+  currentRecipe: null,
+  recipeDraft: []
 };
