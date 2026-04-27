@@ -54,7 +54,26 @@
 
     <!-- RECIPES AND PRODUCTS  -->
     <div id="tab-db" class="tab" style="display:none;">
-    
+
+      <div id="recipeEditor" style="display:none; border:1px solid #ccc; padding:10px; margin-top:10px;">
+      
+        <h3 id="editorTitle">Редактор рецепта</h3>
+      
+        <div id="ingredientsList"></div>
+      
+        <select id="ingredientProduct"></select>
+        <input id="ingredientQty" type="number" placeholder="Кількість">
+      
+        <button id="addIngredientBtn">Додати інгредієнт</button>
+      
+        <hr>
+      
+        <button id="saveRecipeBtn">💾 Зберегти версію</button>
+        <button id="closeEditorBtn">Закрити</button>
+      
+      </div>
+
+      
       <h3>Продукти</h3>
     
       <input id="productName" placeholder="Назва">
