@@ -82,7 +82,7 @@ export async function getMenuByDate(date, user_id) {
       .select('id, menu_items(*)')
       .eq('date', date)
       .eq('user_id', user_id)
-      .single()
+      .maybeSingle()
   );
 }
 
