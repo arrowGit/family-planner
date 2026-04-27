@@ -58,7 +58,7 @@ async function loadAppData(force = false) {
 
   } catch (err) {
     console.error(err);
-    showToast('Помилка завантаження даних');
+    alert('Помилка завантаження даних');
   }
 }
 
