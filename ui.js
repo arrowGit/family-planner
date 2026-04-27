@@ -24,8 +24,8 @@ export function renderAuth() {
       state.user.email;
 
     document.getElementById('topbar').innerHTML = `
-      <div class="topbar">
-        👤 ${name}
+      <div class="user-info">
+        <span>👤 ${name}</span>
         <button id="logoutBtn">Вийти</button>
       </div>
     `;
@@ -122,20 +122,20 @@ export function renderMenu(day) {
   }).join('');
 }
 
-export function renderProducts(i) {
-  return `
-    <div>
-      БЛА БЛА БЛА Продукти
-    </div>
-  `;
+export function renderProducts(items) {
+  const el = document.getElementById('products');
+
+  el.innerHTML = items.map(p => `
+    <div>${p.name}</div>
+  `).join('');
 }
 
-export function renderRecipes(i) {
-  return `
-    <div>
-      БЛА БЛА БЛА Рецепти
-    </div>
-  `;
+export function renderRecipes(items) {
+  const el = document.getElementById('recipes');
+
+  el.innerHTML = items.map(r => `
+    <div>${r.name}</div>
+  `).join('');
 }
 
 function renderMenuItem(i) {
@@ -159,7 +159,7 @@ function renderMenuItem(i) {
             : ''
         }
 
-        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty}">
+        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty})">
           ✔
         </button>
       </div>
