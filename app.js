@@ -111,6 +111,8 @@ async function loadDay(date) {
   ui.renderMenu(data);
 }
 
+window.loadDay = loadDay;
+
 /* =========================
    ADD ITEM
 ========================= */
@@ -140,7 +142,8 @@ async function addItem() {
     user_id: state.user.id
   });
 
-  await loadDay(); // тільки день, не все
+  const date = document.getElementById('date').value;
+  await loadDay(date); // тільки день, не все
 }
 
 /* =========================
@@ -246,5 +249,6 @@ window.saveMenuItem = async () => {
   });
 
   closeModal();
-  await loadDay();
+  const date = document.getElementById('date').value;
+  await loadDay(date);
 };
