@@ -82,6 +82,23 @@ export async function addRecipe(recipe) {
   );
 }
 
+export async function createRecipeVersion(recipe_id, user_id) {
+  const { data, error } = await supabase
+    .from('recipe_versions')
+    .insert({ recipe_id, user_id })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function addRecipeIngredients(ingredients) {
+  return await handle(
+    supabase.from('recipe_ingredients').insert(ingredients)
+  );
+}
+
 /* =========================
    MENU
 ========================= */
