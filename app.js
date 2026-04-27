@@ -59,9 +59,14 @@ async function loadAppData(force = false) {
     renderApp();
     initTabs();
     ui.renderCalendar();
-    const today = new Date().toISOString().slice(0,10);
-    document.getElementById('date').value = today;
-    await loadDay(today);
+   
+    const dateInput = document.getElementById('date');
+   
+    if (dateInput) {
+      const today = new Date().toISOString().slice(0,10);
+      dateInput.value = today;
+      await loadDay(today);
+    }
      
   } catch (err) {
     console.error(err);
