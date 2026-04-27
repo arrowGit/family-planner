@@ -179,3 +179,59 @@ async function calcShopping() {
 
   ui.renderShopping(items);
 }
+
+let currentMeal = null;
+
+window.openAddModal = (meal) => {
+  currentMeal = meal;
+
+  document.getElementById('menuModal').style.display = 'flex';
+
+  fillSelect();
+};
+
+window.closeModal = () => {
+  document.getElementById('menuModal').style.display = 'none';
+};
+
+function fillSelect() {
+  const type = document.getElementById('itemType').value;
+  const select = document.getElementById('itemSelect');
+
+  if (type === 'recipe') {
+    select.innerHTML = state.recipes.map(r =>
+      `<option value="${r.id}">${r.name}</option>`
+    ).join('');
+  } else {
+    select.innerHTML = state.products.map(p =>
+      `<option value="${p.id}">${p.name}</option>`
+    ).join('');
+  }
+}
+
+window.saveMenuItem = async () => {
+  const type = document.getElementById('itemType').value;
+  const id = document.getElementById('itemSelect').value;
+  const qty = parseFloat(document.getElementById('quantity').value);
+  const date = document.getElementById('date').value;
+
+  const { data: day } = await supabase
+    .from('menu_days')
+    .upsert({ date, user_id: state.user.id }, { onConflict: 'date,user_id' })
+    .select()
+    .single();
+
+  await api.addMenuItem({
+    menu_day_id: day.id,
+    item_type: type,
+    product_id: type === 'product' ? id : null,
+    recipe_id: type === 'recipe' ? id : null,
+    quantity: type === 'product' ? qty : null,
+    portions: type === 'recipe' ? qty : null,
+    meal: currentMeal,
+    user_id: state.user.id
+  });
+
+  closeModal();
+  await loadDay();
+};
