@@ -80,7 +80,7 @@ function bindAuthEvents() {
     if (error) {
       alert(error.message);
     } else {
-      showToast('Перевір пошту 📩');
+      alert('Перевір пошту 📩');
     }
   };
 
