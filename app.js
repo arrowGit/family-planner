@@ -55,7 +55,9 @@ async function loadAppData(force = false) {
     appLoaded = true;
 
     renderApp();
-
+    initTabs();
+    ui.renderCalendar();
+     
   } catch (err) {
     console.error(err);
     alert('Помилка завантаження даних');
@@ -83,15 +85,29 @@ function renderApp() {
   ui.renderInventory(state.inventory);
 }
 
+function initTabs() {
+  const buttons = document.querySelectorAll('#tabs button');
+
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.style.display = 'none';
+      });
+
+      document.getElementById(`tab-${btn.dataset.tab}`).style.display = 'block';
+    };
+  });
+}
+
 /* =========================
    MENU (динамічне — без кешу)
 ========================= */
 
-async function loadDay() {
-  const date = document.getElementById('date').value;
-
+async function loadDay(date) {
   const data = await api.getMenuByDate(date, state.user.id);
-
   ui.renderMenu(data);
 }
 
