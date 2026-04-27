@@ -3,6 +3,8 @@ import * as api from './api.js';
 import * as ui from './ui.js';
 import { supabase } from './supabase.js';
 
+let tabsInitialized = false;
+
 /* =========================
    CACHE
 ========================= */
@@ -58,6 +60,7 @@ async function loadAppData(force = false) {
     initTabs();
     ui.renderCalendar();
     const today = new Date().toISOString().slice(0,10);
+    document.getElementById('date').value = today;
     await loadDay(today);
      
   } catch (err) {
@@ -88,6 +91,8 @@ function renderApp() {
 }
 
 function initTabs() {
+  if (tabsInitialized) return;
+  tabsInitialized = true;
   const buttons = document.querySelectorAll('#tabs button');
 
   buttons.forEach(btn => {
@@ -169,6 +174,8 @@ window.consume = async (product_id, recipe_id, qty) => {
   });
 
   await refreshInventory(); // 🔥 тільки inventory
+  const date = document.getElementById('date').value;
+  await loadDay(date); 
 };
 
 window.cook = async (recipe_id, portions) => {
@@ -179,6 +186,8 @@ window.cook = async (recipe_id, portions) => {
   });
 
   await refreshInventory();
+  const date = document.getElementById('date').value;
+  await loadDay(date);
 };
 
 /* =========================
@@ -187,7 +196,10 @@ window.cook = async (recipe_id, portions) => {
 
 async function calcShopping() {
   const date = document.getElementById('date').value;
-
+  if (!date) {
+    alert('Оберіть дату');
+    return;
+  }
   const items = await api.getShoppingList(
     state.user.id,
     date,
@@ -230,6 +242,10 @@ window.saveMenuItem = async () => {
   const type = document.getElementById('itemType').value;
   const id = document.getElementById('itemSelect').value;
   const qty = parseFloat(document.getElementById('quantity').value);
+  if (!qty || qty <= 0) {
+    alert('Введи кількість');
+    return;
+  }
   const date = document.getElementById('date').value;
 
   const { data: day } = await supabase
@@ -252,3 +268,24 @@ window.saveMenuItem = async () => {
   closeModal();
   await loadDay(date);
 };
+
+async function upsertMenuItem({ type, id, qty, meal, date }) {
+  const { data: day } = await supabase
+    .from('menu_days')
+    .upsert({ date, user_id: state.user.id }, { onConflict: 'date,user_id' })
+    .select()
+    .single();
+
+  await api.addMenuItem({
+    menu_day_id: day.id,
+    item_type: type,
+    product_id: type === 'product' ? id : null,
+    recipe_id: type === 'recipe' ? id : null,
+    quantity: type === 'product' ? qty : null,
+    portions: type === 'recipe' ? qty : null,
+    meal,
+    user_id: state.user.id
+  });
+
+  await loadDay(date);
+}
