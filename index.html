@@ -17,22 +17,53 @@
 </head>
 <body>
 
-<body>
-
 <div id="auth"></div>
 
 <div id="app" style="display:none;">
 
-  <div id="topbar"></div>
+  <!-- TOPBAR -->
+  <div id="topbar" class="topbar"></div>
 
-  <div id="menuView">
-    <input type="date" id="date">
-    <div id="menuContainer"></div>
+  <!-- TABS -->
+  <div id="tabs" class="tabs">
+    <button data-tab="menu" class="active">📅 Меню</button>
+    <button data-tab="inventory">📦 Склад</button>
+    <button data-tab="shopping">🛒 Покупки</button>
+    <button data-tab="recipes">🍲 Рецепти</button>
+    <button data-tab="products">🥕 Продукти</button>
   </div>
 
-  <div id="products"></div>
-  <div id="recipes"></div>
-  <div id="inventory"></div>
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- MENU -->
+    <div class="tab" id="tab-menu">
+      <div id="calendar"></div>
+      <div id="menuContainer"></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="tab" id="tab-inventory" style="display:none;">
+      <div id="inventory"></div>
+    </div>
+
+    <!-- SHOPPING -->
+    <div class="tab" id="tab-shopping" style="display:none;">
+      <button onclick="calcShopping()">Розрахувати</button>
+      <div id="shopping"></div>
+    </div>
+
+    <!-- RECIPES -->
+    <div class="tab" id="tab-recipes" style="display:none;">
+      <div id="recipes"></div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="tab" id="tab-products" style="display:none;">
+      <div id="products"></div>
+    </div>
+
+  </div>
 
 </div>
 <script type="module" src="app.js"></script>
