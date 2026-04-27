@@ -5,8 +5,22 @@ export async function getSession() {
   return data.session?.user || null;
 }
 
-export async function login(email) {
-  return supabase.auth.signInWithOtp({ email });
+export async function login() {
+  const email = prompt('Введи email');
+  if (!email) return;
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: 'https://arrowgit.github.io/family-planner/'
+    }
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert('Перевір email 📩');
+  }
 }
 
 export async function loadProducts() {
