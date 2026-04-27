@@ -19,6 +19,31 @@
 
 <div id="auth"></div>
 
+<div id="menuView">
+  <input type="date" id="date">
+
+  <div id="menuContainer"></div>
+</div>
+
+<!-- модалка -->
+<div class="overlay" id="menuModal">
+  <div class="overlay-content">
+    <h3>Додати</h3>
+
+    <select id="itemType">
+      <option value="recipe">Страва</option>
+      <option value="product">Продукт</option>
+    </select>
+
+    <select id="itemSelect"></select>
+
+    <input id="quantity" type="number" placeholder="Кількість / порції">
+
+    <button onclick="saveMenuItem()">Додати</button>
+    <button onclick="closeModal()">Закрити</button>
+  </div>
+</div>
+  
 <div id="app" style="display:none">
   <h2>📅 Меню</h2>
 
