@@ -1,4 +1,12 @@
-body { font-family: sans-serif; margin: 20px; }
+html {
+  font-size: 16px; /* база */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 12px;
+  font-size: 1rem;
+}
 #menu div, #inventory div, #shopping div {
   border: 1px solid #ccc;
   padding: 8px;
