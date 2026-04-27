@@ -14,7 +14,8 @@ let appLoaded = false;
 ========================= */
 
 async function init() {
-  state.user = await api.getSession();
+  const { data } = await supabase.auth.getSession();
+  state.user = data.session?.user || null;
 
   ui.renderAuth();
 
@@ -28,13 +29,9 @@ async function init() {
     ui.renderAuth();
 
     if (state.user) {
-      await loadAppData(true); // 🔥 force reload після логіну
+      await loadAppData(true);
     } else {
       resetState();
-    }
-
-    if (window.location.hash.includes('access_token')) {
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   });
 }
