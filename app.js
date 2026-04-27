@@ -4,6 +4,7 @@ import * as ui from './ui.js';
 import { supabase } from './supabase.js';
 
 let tabsInitialized = false;
+let uiBound  = false;
 
 /* =========================
    CACHE
@@ -74,6 +75,27 @@ async function loadAppData(force = false) {
   }
 }
 
+function bindUI() {
+  if (uiBound) return;
+  uiBound = true;
+ 
+  // ===== PRODUCTS =====
+  document.getElementById('addProductBtn')?.addEventListener('click', onAddProduct);
+
+  // ===== RECIPES =====
+  document.getElementById('addRecipeBtn')?.addEventListener('click', onAddRecipe);
+
+  // ===== MENU MODAL =====
+  //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
+  //document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+
+  // ===== DATE =====
+  document.getElementById('date')?.addEventListener('change', (e) => {
+    loadDay(e.target.value);
+  });
+
+}
+
 /* =========================
    RESET
 ========================= */
@@ -93,6 +115,7 @@ function renderApp() {
   ui.renderProducts(state.products);
   ui.renderRecipes(state.recipes);
   ui.renderInventory(state.inventory);
+  bindUI();
 }
 
 function initTabs() {
@@ -163,7 +186,7 @@ window.cook = async (recipe_id, portions) => {
   await loadDay(date);
 };
 
-window.addProduct = async () => {
+async function onAddProduct() {
   const name = document.getElementById('productName').value;
   const unit = document.getElementById('productUnit').value;
   const calories = parseFloat(document.getElementById('productCalories').value);
@@ -182,9 +205,9 @@ window.addProduct = async () => {
 
   state.products = await api.getProducts();
   ui.renderProducts(state.products);
-};
+}
 
-window.addRecipe = async () => {
+async function onAddRecipe() {
   const name = document.getElementById('recipeName').value;
 
   if (!name) {
@@ -199,13 +222,40 @@ window.addRecipe = async () => {
 
   state.recipes = await api.getRecipes();
   ui.renderRecipes(state.recipes);
-};
+}
+
+async function onSaveMenuItem() {
+  const type = document.getElementById('itemType').value;
+  const id = document.getElementById('itemSelect').value;
+  const qty = parseFloat(document.getElementById('quantity').value);
+  const date = document.getElementById('date').value;
+
+  if (!qty || qty <= 0) {
+    alert('Введи кількість');
+    return;
+  }
+
+  if (!date) {
+    alert('Оберіть дату');
+    return;
+  }
+
+  await upsertMenuItem({
+    type,
+    id,
+    qty,
+    meal: currentMeal,
+    date
+  });
+
+  closeModal();
+}
 
 /* =========================
    SHOPPING
 ========================= */
 
-async function calcShopping() {
+async function onCalcShopping() {
   const date = document.getElementById('date').value;
   if (!date) {
     alert('Оберіть дату');
@@ -248,32 +298,6 @@ function fillSelect() {
     ).join('');
   }
 }
-
-window.saveMenuItem = async () => {
-  const type = document.getElementById('itemType').value;
-  const id = document.getElementById('itemSelect').value;
-  const qty = parseFloat(document.getElementById('quantity').value);
-  const date = document.getElementById('date').value;
-
-  if (!qty || qty <= 0) {
-    alert('Введи кількість');
-    return;
-  }
-  if (!date) {
-    alert('Оберіть дату');
-    return;
-  }
-
-  await upsertMenuItem({
-    type,
-    id,
-    qty,
-    meal: currentMeal,
-    date
-  });
-
-  closeModal();
-};
 
 async function upsertMenuItem({ type, id, qty, meal, date }) {
   const { data: day } = await supabase
