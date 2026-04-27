@@ -1,5 +1,24 @@
 import { supabase } from './supabase.js';
 
+/* =========================
+   HELPERS
+========================= */
+
+async function handle(query) {
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data;
+}
+
+/* =========================
+   AUTH
+========================= */
+
 export async function getSession() {
   const { data } = await supabase.auth.getSession();
   return data.session?.user || null;
@@ -9,7 +28,6 @@ export async function logout() {
   return supabase.auth.signOut();
 }
 
-// EMAIL (magic link)
 export async function loginWithEmail(email) {
   return supabase.auth.signInWithOtp({
     email,
@@ -19,7 +37,6 @@ export async function loginWithEmail(email) {
   });
 }
 
-// GOOGLE
 export async function loginWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -29,54 +46,121 @@ export async function loginWithGoogle() {
   });
 }
 
-export async function loadProducts() {
-  const { data } = await supabase.from('products').select('*').order('name');
-  return data || [];
+/* =========================
+   PRODUCTS
+========================= */
+
+export async function getProducts() {
+  return await handle(
+    supabase
+      .from('products')
+      .select('*')
+      .order('name')
+  );
 }
 
-export async function loadRecipes() {
-  const { data } = await supabase.from('recipes').select('*');
-  return data || [];
+/* =========================
+   RECIPES
+========================= */
+
+export async function getRecipes() {
+  return await handle(
+    supabase
+      .from('recipes')
+      .select('*')
+  );
 }
 
-export async function getMenu(date, user_id) {
-  const { data } = await supabase
-    .from('menu_days')
-    .select('id, menu_items(*)')
-    .eq('date', date)
-    .eq('user_id', user_id)
-    .single();
+/* =========================
+   MENU
+========================= */
 
-  return data;
+export async function getMenuByDate(date, user_id) {
+  return await handle(
+    supabase
+      .from('menu_days')
+      .select('id, menu_items(*)')
+      .eq('date', date)
+      .eq('user_id', user_id)
+      .single()
+  );
 }
 
 export async function addMenuItem(payload) {
-  return supabase.from('menu_items').insert(payload);
+  return await handle(
+    supabase
+      .from('menu_items')
+      .insert(payload)
+  );
 }
 
-export async function loadInventory(user_id) {
-  const { data } = await supabase
-    .from('inventory')
-    .select('*')
-    .eq('user_id', user_id);
+/* =========================
+   INVENTORY / PANTRY
+========================= */
 
-  return data || [];
+export async function getInventory(user_id) {
+  return await handle(
+    supabase
+      .from('inventory')
+      .select('*')
+      .eq('user_id', user_id)
+  );
 }
+
+/* =========================
+   ACTIONS (RPC)
+========================= */
 
 export async function consumeItem(payload) {
-  return supabase.rpc('consume_item', payload);
+  return await handle(
+    supabase.rpc('consume_item', payload)
+  );
 }
 
 export async function cookRecipe(payload) {
-  return supabase.rpc('cook_recipe', payload);
+  return await handle(
+    supabase.rpc('cook_recipe', payload)
+  );
 }
 
-export async function getShopping(user_id, from, to) {
-  const { data } = await supabase.rpc('get_shopping_list_v2', {
-    p_user_id: user_id,
-    p_date_from: from,
-    p_date_to: to
-  });
+/* =========================
+   SHOPPING
+========================= */
 
-  return data || [];
+export async function getShoppingList(user_id, from, to) {
+  return await handle(
+    supabase.rpc('get_shopping_list_v2', {
+      p_user_id: user_id,
+      p_date_from: from,
+      p_date_to: to
+    })
+  );
+}
+
+/* =========================
+   🔥 APP INIT (NEW)
+========================= */
+
+export async function loadAppData(user_id) {
+  try {
+    const [
+      products,
+      recipes,
+      inventory
+    ] = await Promise.all([
+      getProducts(),
+      getRecipes(),
+      getInventory(user_id)
+    ]);
+
+    return {
+      products,
+      recipes,
+      inventory
+    };
+
+  } catch (err) {
+    console.error('loadAppData error:', err);
+    throw err;
+  }
 }
