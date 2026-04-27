@@ -6,6 +6,7 @@ export async function getSession() {
 }
 
 export async function login() {
+  console.log('LOGIN CLICK');
   const email = prompt('Введи email');
   if (!email) return;
 
