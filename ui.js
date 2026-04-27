@@ -138,6 +138,7 @@ export function renderRecipes(recipes) {
   el.innerHTML = recipes.map(r => `
     <div>
       ${r.name}
+      <button onclick="openRecipeEditor('${r.id}')">✏️</button>
     </div>
   `).join('');
 }
