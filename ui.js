@@ -199,7 +199,7 @@ export function renderCalendar(selectedDate = new Date()) {
   const month = date.getMonth();
 
   const firstDay = new Date(year, month, 1);
-  const startDay = firstDay.getDay() || 7;
+  const startDay = (firstDay.getDay() + 6) % 7;
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
