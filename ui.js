@@ -156,4 +156,12 @@ export function renderInventory(items) {
 }
 
 export function renderShopping(items) {
+  el.innerHTML = items.map(i => `
+    <div>
+      ${getProductName(i.product_id)} 
+      потрібно: ${i.needed}
+      є: ${i.in_stock}
+      купити: ${i.to_buy}
+    </div>
+  `)
 }
