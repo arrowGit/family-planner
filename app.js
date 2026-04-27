@@ -163,6 +163,44 @@ window.cook = async (recipe_id, portions) => {
   await loadDay(date);
 };
 
+window.addProduct = async () => {
+  const name = document.getElementById('productName').value;
+  const unit = document.getElementById('productUnit').value;
+  const calories = parseFloat(document.getElementById('productCalories').value);
+
+  if (!name || !unit) {
+    alert('Заповни назву і одиницю');
+    return;
+  }
+
+  await api.addProduct({
+    name,
+    unit,
+    calories_per_unit: calories || null,
+    user_id: state.user.id
+  });
+
+  state.products = await api.getProducts();
+  ui.renderProducts(state.products);
+};
+
+window.addRecipe = async () => {
+  const name = document.getElementById('recipeName').value;
+
+  if (!name) {
+    alert('Введи назву');
+    return;
+  }
+
+  await api.addRecipe({
+    name,
+    user_id: state.user.id
+  });
+
+  state.recipes = await api.getRecipes();
+  ui.renderRecipes(state.recipes);
+};
+
 /* =========================
    SHOPPING
 ========================= */
