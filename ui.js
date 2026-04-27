@@ -122,10 +122,18 @@ export function renderMenu(day) {
   }).join('');
 }
 
-function renderProducts(i) {
+export function renderProducts(i) {
   return `
     <div>
-      БЛА БЛА БЛА
+      БЛА БЛА БЛА Продукти
+    </div>
+  `;
+}
+
+export function renderRecipes(i) {
+  return `
+    <div>
+      БЛА БЛА БЛА Рецепти
     </div>
   `;
 }
