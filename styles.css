@@ -85,24 +85,34 @@ input, select {
 /* TOPBAR */
 .topbar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   padding: 10px;
   background: #4CAF50;
   color: white;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* TABS */
 .tabs {
   display: flex;
   border-bottom: 1px solid #ddd;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabs button {
-  flex: 1;
+  flex: 0 0 auto;
   padding: 10px;
   border: none;
   background: #f5f5f5;
   cursor: pointer;
+  min-width: 80px;
 }
 
 .tabs button.active {
