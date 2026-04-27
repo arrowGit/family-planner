@@ -11,75 +11,82 @@ const meals = [
 ];
 
 export function renderAuth() {
-  const el = document.getElementById('auth');
+  const authEl = document.getElementById('auth');
+  const appEl = document.getElementById('app');
 
   if (state.user) {
-    el.innerHTML = `
-      <div>
-        👤 ${state.user.email}
+    authEl.innerHTML = '';
+
+    appEl.style.display = 'block';
+
+    const name =
+      state.user.user_metadata?.full_name ||
+      state.user.email;
+
+    document.getElementById('topbar').innerHTML = `
+      <div class="topbar">
+        👤 ${name}
         <button id="logoutBtn">Вийти</button>
       </div>
     `;
 
-    document.getElementById('app').style.display = 'block';
-
     document.getElementById('logoutBtn').onclick = async () => {
       await api.logout();
-      state.user = null;
-      renderAuth();
     };
 
   } else {
-    document.getElementById('app').style.display = 'none';
+    appEl.style.display = 'none';
 
-    el.innerHTML = `
-      <div style="border:1px solid #ccc; padding:20px; max-width:300px;">
-        
+    authEl.innerHTML = `
+      <div class="login-box">
         <h3>Вхід</h3>
 
-        <input id="emailInput" placeholder="Email" style="width:100%; margin-bottom:10px;" />
+        <input id="emailInput" placeholder="Email" />
 
-        <button id="emailLoginBtn" style="width:100%; margin-bottom:10px;">
+        <button id="emailLoginBtn">
           Увійти через email
         </button>
 
         <hr>
 
-        <button id="googleLoginBtn" style="width:100%;">
-          Увійти через Google
+        <button id="googleLoginBtn">
+          Google
         </button>
-
       </div>
     `;
 
-    // EMAIL LOGIN
-    document.getElementById('emailLoginBtn').onclick = async () => {
-      if (loginInProgress) return;
-
-      const email = document.getElementById('emailInput').value;
-      if (!email) {
-        alert('Введи email');
-        return;
-      }
-
-      loginInProgress = true;
-
-      const { error } = await api.loginWithEmail(email);
-
-      loginInProgress = false;
-
-      if (error) {
-        alert(error.message);
-      } else {
-        alert('Перевір email 📩');
-      }
-    };
-
-    // GOOGLE LOGIN
-    document.getElementById('googleLoginBtn').onclick = async () => {
-      await api.loginWithGoogle();
-    };
+    bindAuthEvents();
   }
+}
+
+function bindAuthEvents() {
+  const emailBtn = document.getElementById('emailLoginBtn');
+  const googleBtn = document.getElementById('googleLoginBtn');
+
+  emailBtn.onclick = async () => {
+    const email = document.getElementById('emailInput').value;
+
+    if (!email) {
+      alert('Введи email');
+      return;
+    }
+
+    emailBtn.disabled = true;
+
+    const { error } = await api.loginWithEmail(email);
+
+    emailBtn.disabled = false;
+
+    if (error) {
+      alert(error.message);
+    } else {
+      alert('Перевір пошту 📩');
+    }
+  };
+
+  googleBtn.onclick = async () => {
+    await api.loginWithGoogle();
+  };
 }
 
 export function fillDropdowns() {
