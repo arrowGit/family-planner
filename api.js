@@ -5,23 +5,28 @@ export async function getSession() {
   return data.session?.user || null;
 }
 
-export async function login() {
-  console.log('LOGIN CLICK');
-  const email = prompt('Введи email');
-  if (!email) return;
+export async function logout() {
+  return supabase.auth.signOut();
+}
 
-  const { error } = await supabase.auth.signInWithOtp({
+// EMAIL (magic link)
+export async function loginWithEmail(email) {
+  return supabase.auth.signInWithOtp({
     email,
     options: {
       emailRedirectTo: 'https://arrowgit.github.io/family-planner/'
     }
   });
+}
 
-  if (error) {
-    alert(error.message);
-  } else {
-    alert('Перевір email 📩');
-  }
+// GOOGLE
+export async function loginWithGoogle() {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'https://arrowgit.github.io/family-planner/'
+    }
+  });
 }
 
 export async function loadProducts() {
