@@ -121,38 +121,6 @@ async function loadDay(date) {
 window.loadDay = loadDay;
 
 /* =========================
-   ADD ITEM
-========================= */
-
-async function addItem() {
-  const type = document.getElementById('itemType').value;
-  const id = document.getElementById('itemSelect').value;
-  const qty = parseFloat(document.getElementById('quantity').value);
-  const meal = document.getElementById('meal').value;
-  const date = document.getElementById('date').value;
-
-  // ❗ поки лишаємо напряму (це ок)
-  const { data: day } = await supabase
-    .from('menu_days')
-    .upsert({ date, user_id: state.user.id }, { onConflict: 'date,user_id' })
-    .select()
-    .single();
-
-  await api.addMenuItem({
-    menu_day_id: day.id,
-    item_type: type,
-    product_id: type === 'product' ? id : null,
-    recipe_id: type === 'recipe' ? id : null,
-    quantity: type === 'product' ? qty : null,
-    portions: type === 'recipe' ? qty : null,
-    meal,
-    user_id: state.user.id
-  });
-
-  await loadDay(date); // тільки день, не все
-}
-
-/* =========================
    INVENTORY
 ========================= */
 
@@ -242,31 +210,26 @@ window.saveMenuItem = async () => {
   const type = document.getElementById('itemType').value;
   const id = document.getElementById('itemSelect').value;
   const qty = parseFloat(document.getElementById('quantity').value);
+  const date = document.getElementById('date').value;
+
   if (!qty || qty <= 0) {
     alert('Введи кількість');
     return;
   }
-  const date = document.getElementById('date').value;
+  if (!date) {
+    alert('Оберіть дату');
+    return;
+  }
 
-  const { data: day } = await supabase
-    .from('menu_days')
-    .upsert({ date, user_id: state.user.id }, { onConflict: 'date,user_id' })
-    .select()
-    .single();
-
-  await api.addMenuItem({
-    menu_day_id: day.id,
-    item_type: type,
-    product_id: type === 'product' ? id : null,
-    recipe_id: type === 'recipe' ? id : null,
-    quantity: type === 'product' ? qty : null,
-    portions: type === 'recipe' ? qty : null,
+  await upsertMenuItem({
+    type,
+    id,
+    qty,
     meal: currentMeal,
-    user_id: state.user.id
+    date
   });
 
   closeModal();
-  await loadDay(date);
 };
 
 async function upsertMenuItem({ type, id, qty, meal, date }) {
