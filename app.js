@@ -8,19 +8,19 @@ async function init() {
 
   ui.renderAuth();
 
-  if (!state.user) return;
+  // слухаємо зміни авторизації
+  supabase.auth.onAuthStateChange((_event, session) => {
+    state.user = session?.user || null;
+    ui.renderAuth();
 
-  state.products = await api.loadProducts();
-  state.recipes = await api.loadRecipes();
-
-  ui.fillDropdowns();
-
-  document.getElementById('loadDay').onclick = loadDay;
-  document.getElementById('addItem').onclick = addItem;
-  document.getElementById('calcShopping').onclick = calcShopping;
-
-  await refreshInventory();
+    // 🔥 прибираємо #access_token з URL
+    if (window.location.hash.includes('access_token')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
 }
+
+init();
 
 async function loadDay() {
   const date = document.getElementById('date').value;
