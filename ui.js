@@ -122,19 +122,23 @@ export function renderMenu(day) {
   }).join('');
 }
 
-export function renderProducts(items) {
-  const el = document.getElementById('products');
+export function renderProducts(products) {
+  const el = document.getElementById('productsList');
 
-  el.innerHTML = items.map(p => `
-    <div>${p.name}</div>
+  el.innerHTML = products.map(p => `
+    <div>
+      ${p.name} (${p.unit})
+    </div>
   `).join('');
 }
 
-export function renderRecipes(items) {
-  const el = document.getElementById('recipes');
+export function renderRecipes(recipes) {
+  const el = document.getElementById('recipesList');
 
-  el.innerHTML = items.map(r => `
-    <div>${r.name}</div>
+  el.innerHTML = recipes.map(r => `
+    <div>
+      ${r.name}
+    </div>
   `).join('');
 }
 
