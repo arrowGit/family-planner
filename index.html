@@ -21,7 +21,6 @@
 
 <div id="menuView">
   <input type="date" id="date">
-
   <div id="menuContainer"></div>
 </div>
 
@@ -42,46 +41,6 @@
     <button onclick="saveMenuItem()">Додати</button>
     <button onclick="closeModal()">Закрити</button>
   </div>
-</div>
-  
-<div id="app" style="display:none">
-  <h2>📅 Меню</h2>
-
-  <input type="date" id="date" />
-  <button id="loadDay">Завантажити</button>
-
-  <div id="menu"></div>
-
-  <h3>➕ Додати</h3>
-
-  <select id="itemType">
-    <option value="product">Продукт</option>
-    <option value="recipe">Страва</option>
-  </select>
-
-  <select id="itemSelect"></select>
-
-  <input id="quantity" type="number" placeholder="кількість/порції" />
-
-  <select id="meal">
-    <option value="breakfast">Сніданок</option>
-    <option value="lunch">Обід</option>
-    <option value="dinner">Вечеря</option>
-    <option value="snack">Перекус</option>
-  </select>
-
-  <button id="addItem">Додати</button>
-
-  <hr />
-
-  <h2>📦 Запаси</h2>
-  <div id="inventory"></div>
-
-  <hr />
-
-  <h2>🛒 Покупки</h2>
-  <button id="calcShopping">Розрахувати</button>
-  <div id="shopping"></div>
 </div>
 
 <script type="module" src="app.js"></script>
