@@ -3,6 +3,13 @@ import { state } from './state.js';
 
 let loginInProgress = false;
 
+const meals = [
+  { key: 'breakfast', label: '🍳 Сніданок' },
+  { key: 'lunch', label: '🍲 Обід' },
+  { key: 'dinner', label: '🍝 Вечеря' },
+  { key: 'snack', label: '🍎 Перекус' }
+];
+
 export function renderAuth() {
   const el = document.getElementById('auth');
 
@@ -83,20 +90,58 @@ export function fillDropdowns() {
   ).join('');
 }
 
-export function renderMenu(data) {
-  const el = document.getElementById('menu');
+export function renderMenu(day) {
+  const container = document.getElementById('menuContainer');
 
-  if (!data) {
-    el.innerHTML = 'Немає даних';
+  if (!day) {
+    container.innerHTML = 'Немає меню';
     return;
   }
 
-  el.innerHTML = data.menu_items.map(i => `
-    <div>
-      ${i.meal} - ${i.item_type} 
-      <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${i.quantity || i.portions})">✔</button>
+  container.innerHTML = meals.map(meal => {
+    const items = day.menu_items?.filter(i => i.meal === meal.key) || [];
+
+    return `
+      <div class="meal-block">
+        <div class="meal-title">${meal.label}</div>
+
+        ${items.map(renderMenuItem).join('')}
+
+        <button class="add-btn" onclick="openAddModal('${meal.key}')">
+          + Додати
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMenuItem(i) {
+  const name =
+    i.item_type === 'recipe'
+      ? state.recipes.find(r => r.id === i.recipe_id)?.name
+      : state.products.find(p => p.id === i.product_id)?.name;
+
+  const qty = i.item_type === 'recipe' ? i.portions : i.quantity;
+
+  return `
+    <div class="menu-item">
+      <div>
+        ${name} (${qty})
+      </div>
+
+      <div>
+        ${
+          i.item_type === 'recipe'
+            ? `<button onclick="cook('${i.recipe_id}', ${qty})">🍳</button>`
+            : ''
+        }
+
+        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty)">
+          ✔
+        </button>
+      </div>
     </div>
-  `).join('');
+  `;
 }
 
 export function renderInventory(items) {
