@@ -67,7 +67,7 @@ function bindAuthEvents() {
     const email = document.getElementById('emailInput').value;
 
     if (!email) {
-      alert('Введи email');
+      showToast('Введи email');
       return;
     }
 
@@ -78,9 +78,9 @@ function bindAuthEvents() {
     emailBtn.disabled = false;
 
     if (error) {
-      alert(error.message);
+      showToast(error.message);
     } else {
-      alert('Перевір пошту 📩');
+      showToast('Перевір пошту 📩');
     }
   };
 
