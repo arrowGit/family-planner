@@ -84,7 +84,10 @@ function bindUI() {
 
   // ===== RECIPES =====
   document.getElementById('addRecipeBtn')?.addEventListener('click', onAddRecipe);
-
+  document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
+  document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
+  document.getElementById('closeEditorBtn')?.addEventListener('click', closeRecipeEditor);
+   
   // ===== MENU MODAL =====
   //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
   //document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
@@ -318,4 +321,86 @@ async function upsertMenuItem({ type, id, qty, meal, date }) {
   });
 
   await loadDay(date);
+}
+
+/* =========================
+   Recipes
+========================= */
+
+function openRecipeEditor(recipeId) {
+  state.currentRecipe = recipeId;
+  state.recipeDraft = [];
+
+  document.getElementById('recipeEditor').style.display = 'block';
+
+  fillIngredientProducts();
+  renderIngredients();
+}
+
+function fillIngredientProducts() {
+  const select = document.getElementById('ingredientProduct');
+
+  select.innerHTML = state.products.map(p =>
+    `<option value="${p.id}">${p.name}</option>`
+  ).join('');
+}
+
+function onAddIngredient() {
+  const product_id = document.getElementById('ingredientProduct').value;
+  const qty = parseFloat(document.getElementById('ingredientQty').value);
+
+  if (!qty || qty <= 0) {
+    alert('Введи кількість');
+    return;
+  }
+
+  state.recipeDraft.push({
+    product_id,
+    quantity: qty
+  });
+
+  renderIngredients();
+}
+
+function renderIngredients() {
+  const el = document.getElementById('ingredientsList');
+
+  el.innerHTML = state.recipeDraft.map(i => {
+    const name = state.products.find(p => p.id === i.product_id)?.name;
+
+    return `<div>${name} — ${i.quantity}</div>`;
+  }).join('');
+}
+
+async function onSaveRecipe() {
+  if (!state.currentRecipe) return;
+
+  if (state.recipeDraft.length === 0) {
+    alert('Додай інгредієнти');
+    return;
+  }
+
+  const version = await api.createRecipeVersion(
+    state.currentRecipe,
+    state.user.id
+  );
+
+  const ingredients = state.recipeDraft.map(i => ({
+    recipe_version_id: version.id,
+    product_id: i.product_id,
+    quantity: i.quantity
+  }));
+
+  await api.addRecipeIngredients(ingredients);
+
+  alert('Збережено ✅');
+
+  closeRecipeEditor();
+}
+
+function closeRecipeEditor() {
+  document.getElementById('recipeEditor').style.display = 'none';
+
+  state.currentRecipe = null;
+  state.recipeDraft = [];
 }
