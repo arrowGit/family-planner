@@ -136,7 +136,7 @@ function renderMenuItem(i) {
             : ''
         }
 
-        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty)">
+        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty}">
           ✔
         </button>
       </div>
