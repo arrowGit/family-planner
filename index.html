@@ -53,10 +53,27 @@
     </div>
 
     <!-- RECIPES AND PRODUCTS  -->
-    <div class="tab" id="tab-db" style="display:none;">
-      <div id="products"></div>
+    <div id="tab-db" class="tab">
+    
+      <h3>Продукти</h3>
+    
+      <input id="productName" placeholder="Назва">
+      <input id="productUnit" placeholder="Одиниця (кг, шт)">
+      <input id="productCalories" type="number" placeholder="Ккал">
+    
+      <button onclick="addProduct()">Додати продукт</button>
+    
+      <div id="productsList"></div>
+    
       <hr>
-      <div id="recipes"></div>
+    
+      <h3>Рецепти</h3>
+    
+      <input id="recipeName" placeholder="Назва рецепту">
+      <button onclick="addRecipe()">Додати рецепт</button>
+    
+      <div id="recipesList"></div>
+    
     </div>
 
   </div>
