@@ -122,6 +122,14 @@ export function renderMenu(day) {
   }).join('');
 }
 
+function renderProducts(i) {
+  return `
+    <div>
+      БЛА БЛА БЛА
+    </div>
+  `;
+}
+
 function renderMenuItem(i) {
   const name =
     i.item_type === 'recipe'
