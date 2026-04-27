@@ -179,12 +179,62 @@ export function renderInventory(items) {
 }
 
 export function renderShopping(items) {
+  const el = document.getElementById('shopping');
+
   el.innerHTML = items.map(i => `
     <div>
-      ${getProductName(i.product_id)} 
-      потрібно: ${i.needed}
-      є: ${i.in_stock}
-      купити: ${i.to_buy}
+      ${state.products.find(p => p.id === i.product_id)?.name || '❓'}
+      — потрібно: ${i.needed}
+      — є: ${i.in_stock}
+      — купити: <b>${i.to_buy}</b>
     </div>
-  `)
+  `).join('');
+}
+
+export function renderCalendar(selectedDate = new Date()) {
+  const container = document.getElementById('calendar');
+
+  const date = new Date(selectedDate);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const startDay = firstDay.getDay() || 7;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = `<div class="calendar">`;
+
+  for (let i = 1; i < startDay; i++) {
+    html += `<div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const fullDate = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    html += `
+      <div class="calendar-day" data-date="${fullDate}">
+        ${d}
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  container.innerHTML = html;
+
+  bindCalendar();
+}
+
+function bindCalendar() {
+  document.querySelectorAll('.calendar-day').forEach(day => {
+    day.onclick = async () => {
+      document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+      day.classList.add('active');
+
+      const date = day.dataset.date;
+
+      await loadDay(date);
+    };
+  });
 }
