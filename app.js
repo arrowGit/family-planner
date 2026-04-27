@@ -337,6 +337,8 @@ function openRecipeEditor(recipeId) {
   renderIngredients();
 }
 
+window.openRecipeEditor = openRecipeEditor;
+
 function fillIngredientProducts() {
   const select = document.getElementById('ingredientProduct');
 
