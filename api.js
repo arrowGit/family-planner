@@ -82,12 +82,26 @@ export async function updateProduct(id, data) {
    RECIPES
 ========================= */
 
-export async function getRecipes() {
-  return await handle(
-    supabase
-      .from('recipes')
-      .select('*')
-  );
+export async function getRecipes(user_id) {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select(`
+      id,
+      name,
+      main_version_id,
+      recipe_versions (
+        id,
+        portions
+      )
+    `)
+    .eq('user_id', user_id);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data;
 }
 
 export async function addRecipe(data) {
@@ -103,7 +117,7 @@ export async function addRecipe(data) {
 }
 
 export async function createRecipeVersion(recipe_id, user_id, portions) {
-  const { data, error } = await supabase
+  const { data: version, error } = await supabase
     .from('recipe_versions')
     .insert({
       recipe_id,
@@ -118,7 +132,35 @@ export async function createRecipeVersion(recipe_id, user_id, portions) {
     return null;
   }
 
-  return data;
+  // 🔥 перевіряємо чи є вже main_version
+  const { data: recipe } = await supabase
+    .from('recipes')
+    .select('main_version_id')
+    .eq('id', recipe_id)
+    .single();
+
+  if (!recipe.main_version_id) {
+    await supabase
+      .from('recipes')
+      .update({ main_version_id: version.id })
+      .eq('id', recipe_id);
+  }
+
+  return version;
+}
+
+export async function setMainRecipeVersion(recipe_id, version_id) {
+  const { error } = await supabase
+    .from('recipes')
+    .update({ main_version_id: version_id })
+    .eq('id', recipe_id);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
 }
 
 export async function addRecipeIngredients(ingredients) {
