@@ -464,10 +464,12 @@ function renderRecipeView() {
 
   const version = versions[state.viewVersionIndex];
 
-  document.getElementById('viewRecipeName').innerText = recipe.name;
+  const isMain = version.id === recipe.main_version_id;
 
-  document.getElementById('viewRecipeMeta').innerText =
-    `Порції: ${version.portions}`;
+  document.getElementById('viewRecipeName').innerHTML = `
+    ${recipe.name} ${isMain ? '⭐' : ''}
+  `;  document.getElementById('viewRecipeMeta').innerText =
+      `Порції: ${version.portions}`;
 
   renderViewIngredients(version.id);
 
