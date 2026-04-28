@@ -113,6 +113,26 @@ export async function addRecipeIngredients(ingredients) {
   );
 }
 
+export async function getRecipeIngredients(recipe_id) {
+  // беремо останню версію рецепта
+  const { data: version } = await supabase
+    .from('recipe_versions')
+    .select('*')
+    .eq('recipe_id', recipe_id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!version) return [];
+
+  const { data: ingredients } = await supabase
+    .from('recipe_ingredients')
+    .select('*')
+    .eq('recipe_version_id', version.id);
+
+  return ingredients || [];
+}
+
 export async function deleteRecipe(id) {
   return await handle(
     supabase.from('recipes').delete().eq('id', id)
