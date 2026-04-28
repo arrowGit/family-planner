@@ -388,17 +388,25 @@ function closeProductModal() {
 /* =========================
    Recipes
 ========================= */
-function openRecipeModal(recipe = null) {
+async function openRecipeModal(recipe = null) {
   state.editingRecipe = recipe;
 
   document.getElementById('recipeModal').style.display = 'flex';
-
   document.getElementById('recipeName').value = recipe?.name || '';
 
   document.getElementById('deleteRecipeBtn').style.display = recipe ? 'block' : 'none';
 
-  // 🔥 ВАЖЛИВО
+  // 🔥 НОВЕ
   state.recipeDraft = [];
+
+  if (recipe) {
+    const ingredients = await api.getRecipeIngredients(recipe.id);
+
+    state.recipeDraft = ingredients.map(i => ({
+      product_id: i.product_id,
+      quantity: i.quantity
+    }));
+  }
 
   fillIngredientProducts();
   renderIngredients();
