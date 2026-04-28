@@ -82,6 +82,29 @@ export async function updateProduct(id, data) {
    RECIPES
 ========================= */
 
+export async function getRecipeFull(recipe_id) {
+  const { data, error } = await supabase
+    .from('recipe_versions')
+    .select(`
+      id,
+      portions,
+      created_at,
+      recipe_ingredients (
+        product_id,
+        quantity
+      )
+    `)
+    .eq('recipe_id', recipe_id)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data;
+}
+
 export async function getRecipes(user_id) {
   if (!user_id) {
     console.warn('⛔ getRecipes без user_id');
@@ -106,6 +129,47 @@ export async function getRecipes(user_id) {
   }
 
   return data;
+}
+
+async function openRecipeView(recipeId) {
+  const recipe = state.recipes.find(r => r.id === recipeId);
+
+  const versions = await api.getRecipeFull(recipeId);
+
+  state.currentRecipe = recipe;
+  state.currentVersions = versions;
+
+  // 👉 знаходимо індекс основної версії
+  const index = versions.findIndex(v => v.id === recipe.main_version_id);
+
+  state.currentVersionIndex = index >= 0 ? index : 0;
+
+  renderRecipeView();
+
+  document.getElementById('recipeViewModal').style.display = 'flex';
+}
+
+function renderRecipeView() {
+  const recipe = state.currentRecipe;
+  const versions = state.currentVersions;
+  const i = state.currentVersionIndex;
+
+  const version = versions[i];
+
+  document.getElementById('viewRecipeTitle').innerText = recipe.name;
+
+  document.getElementById('versionInfo').innerText =
+    `Версія ${i + 1} / ${versions.length}`;
+
+  document.getElementById('viewPortions').innerText =
+    `Порцій: ${version.portions}`;
+
+  const ingredientsHTML = version.recipe_ingredients.map(i => {
+    const name = state.products.find(p => p.id === i.product_id)?.name;
+    return `<div>${name} — ${i.quantity}</div>`;
+  }).join('');
+
+  document.getElementById('viewIngredients').innerHTML = ingredientsHTML;
 }
 
 export async function addRecipe(data) {
