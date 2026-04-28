@@ -492,6 +492,8 @@ async function renderViewIngredients(versionId) {
 
 async function openRecipeModal(recipe = null, version = null) {
   state.editingRecipe = recipe;
+  state.editingVersion = version || null;
+
 
   document.getElementById('recipeModal').style.display = 'flex';
   document.getElementById('recipeName').value = recipe?.name || '';
@@ -501,14 +503,31 @@ async function openRecipeModal(recipe = null, version = null) {
   // 🔥 НОВЕ
   state.recipeDraft = [];
 
-  if (recipe) {
-    const ingredients = await api.getRecipeIngredients(recipe.id);
-
-    state.recipeDraft = ingredients.map(i => ({
-      product_id: i.product_id,
-      quantity: i.quantity
-    }));
-  }
+   if (version) {
+     // 🔥 редагування конкретної версії
+     document.getElementById('recipePortions').value = version.portions;
+   
+     const ingredients = await api.getIngredientsByVersion(version.id);
+   
+     state.recipeDraft = ingredients.map(i => ({
+       product_id: i.product_id,
+       quantity: i.quantity
+     }));
+   
+   } else if (recipe) {
+     // 🔥 fallback (наприклад старий режим)
+     document.getElementById('recipePortions').value = '';
+   
+     const ingredients = await api.getRecipeIngredients(recipe.id);
+   
+     state.recipeDraft = ingredients.map(i => ({
+       product_id: i.product_id,
+       quantity: i.quantity
+     }));
+   
+   } else {
+     document.getElementById('recipePortions').value = '';
+   }
 
   fillIngredientProducts();
   renderIngredients();
@@ -584,32 +603,26 @@ async function onAddRecipe() {
 
 async function onSaveRecipe() {
   let recipe = state.editingRecipe;
+  const version = state.editingVersion;
 
   const name = document.getElementById('recipeName').value;
+  const portions = parseFloat(document.getElementById('recipePortions').value);
 
   if (!name) {
     alert('Введи назву');
     return;
   }
 
-  const portions = parseFloat(document.getElementById('recipePortions').value);
-
   if (!portions || portions <= 0) {
-    alert('Вкажи кількість порцій');
+    alert('Вкажи порції');
     return;
   }
-   
-  // 🔥 якщо новий
+
   if (!recipe) {
     const created = await api.addRecipe({
       name,
       user_id: state.user.id
     });
-
-    if (!created) {
-      alert('Помилка створення рецепта');
-      return;
-    }
 
     recipe = created;
     state.editingRecipe = recipe;
@@ -620,21 +633,49 @@ async function onSaveRecipe() {
     return;
   }
 
-  const version = await api.createRecipeVersion(
-    recipe.id,
-    state.user.id,
-    portions
-  );
+  // 🔥 ВИБІР РЕЖИМУ
+  let overwrite = false;
 
-  const ingredients = state.recipeDraft.map(i => ({
-    recipe_version_id: version.id,
-    product_id: i.product_id,
-    quantity: i.quantity
-  }));
+  if (version) {
+    overwrite = confirm('Перезаписати цю версію? (ОК = так, Cancel = нова версія)');
+  }
 
-  await api.addRecipeIngredients(ingredients);
+  if (overwrite && version) {
+    // ♻️ OVERWRITE
 
-  state.recipes = await api.getRecipes();
+    await api.deleteIngredientsByVersion(version.id);
+
+    const ingredients = state.recipeDraft.map(i => ({
+      recipe_version_id: version.id,
+      product_id: i.product_id,
+      quantity: i.quantity
+    }));
+
+    await api.addRecipeIngredients(ingredients);
+
+    await api.updateRecipeVersion(version.id, {
+      portions
+    });
+
+  } else {
+    // 🆕 NEW VERSION
+
+    const newVersion = await api.createRecipeVersion(
+      recipe.id,
+      state.user.id,
+      portions
+    );
+
+    const ingredients = state.recipeDraft.map(i => ({
+      recipe_version_id: newVersion.id,
+      product_id: i.product_id,
+      quantity: i.quantity
+    }));
+
+    await api.addRecipeIngredients(ingredients);
+  }
+
+  state.recipes = await api.getRecipes(state.user.id);
   ui.renderRecipes(state.recipes);
 
   closeRecipeModal();
