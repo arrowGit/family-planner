@@ -458,6 +458,11 @@ window.removeIngredient = (index) => {
   renderIngredients();
 };
 
+window.editRecipe = (id) => {
+  const recipe = state.recipes.find(r => r.id === id);
+  openRecipeModal(recipe);
+};
+
 async function onAddRecipe() {
   const name = document.getElementById('recipeName').value;
 
