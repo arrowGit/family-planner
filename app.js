@@ -128,7 +128,29 @@ function bindUI() {
   document.getElementById('closeRecipeViewBtn')?.addEventListener('click', () => {
     document.getElementById('recipeViewModal').style.display = 'none';
   });
+  document.getElementById('prevVersionBtn')?.addEventListener('click', () => {
+    const versions = state.viewRecipe.recipe_versions;
+    state.viewVersionIndex = (state.viewVersionIndex - 1 + versions.length) % versions.length;
+    renderRecipeView();
+  });
 
+  document.getElementById('nextVersionBtn')?.addEventListener('click', () => {
+    const versions = state.viewRecipe.recipe_versions;
+    state.viewVersionIndex = (state.viewVersionIndex + 1) % versions.length;
+    renderRecipeView();
+  });
+  document.getElementById('closeRecipeViewBtn')?.addEventListener('click', () => {
+    document.getElementById('recipeViewModal').style.display = 'none';
+    state.viewRecipe = null;
+  });
+  document.getElementById('makeMainBtn')?.addEventListener('click', async () => {
+    const recipe = state.viewRecipe;
+    const version = recipe.recipe_versions[state.viewVersionIndex];
+    await api.setMainRecipeVersion(recipe.id, version.id);
+    // оновити локально
+    recipe.main_version_id = version.id;
+    renderRecipeView();
+  });
    
   // ===== MENU MODAL =====
   //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
@@ -440,6 +462,55 @@ function closeProductModal() {
 /* =========================
    Recipes
 ========================= */
+function openRecipeView(recipe) {
+  state.viewRecipe = recipe;
+
+  // знайти індекс main версії
+  const idx = recipe.recipe_versions.findIndex(
+    v => v.id === recipe.main_version_id
+  );
+
+  state.viewVersionIndex = idx >= 0 ? idx : 0;
+
+  document.getElementById('recipeViewModal').style.display = 'flex';
+
+  renderRecipeView();
+} 
+
+function renderRecipeView() {
+  const recipe = state.viewRecipe;
+  const versions = recipe.recipe_versions || [];
+
+  if (versions.length === 0) return;
+
+  const version = versions[state.viewVersionIndex];
+
+  document.getElementById('viewRecipeName').innerText = recipe.name;
+
+  document.getElementById('viewRecipeMeta').innerText =
+    `Порції: ${version.portions}`;
+
+  renderViewIngredients(version.id);
+
+  // кнопка "основна"
+  const isMain = version.id === recipe.main_version_id;
+
+  document.getElementById('makeMainBtn').style.display =
+    isMain ? 'none' : 'block';
+}
+
+async function renderViewIngredients(versionId) {
+  const ingredients = await api.getIngredientsByVersion(versionId);
+
+  const el = document.getElementById('viewIngredients');
+
+  el.innerHTML = ingredients.map(i => {
+    const name = state.products.find(p => p.id === i.product_id)?.name;
+
+    return `<div>${name} — ${i.quantity}</div>`;
+  }).join('');
+}
+
 async function openRecipeModal(recipe = null) {
   state.editingRecipe = recipe;
 
