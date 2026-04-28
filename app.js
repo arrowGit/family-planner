@@ -80,19 +80,17 @@ function bindUI() {
   uiBound = true;
  
   // ===== PRODUCTS =====
-
-  // ===== RECIPES =====
-  document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
   document.getElementById('openAddProductBtn')?.addEventListener('click', () => openProductModal());
   document.getElementById('saveProductBtn')?.addEventListener('click', onSaveProduct);
   document.getElementById('closeProductModalBtn')?.addEventListener('click', closeProductModal);
-  document.getElementById('openAddRecipeBtn')?.addEventListener('click', () => openRecipeModal());
-
-  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', closeRecipeModal);
   document.getElementById('productModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'productModal') closeProductModal();
   });
-
+  // ===== RECIPES =====
+  document.getElementById('openAddRecipeBtn')?.addEventListener('click', () => openRecipeModal());
+  document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
+  document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
+  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', closeRecipeModal);
   document.getElementById('recipeModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'recipeModal') closeRecipeModal();
   });
@@ -398,7 +396,59 @@ function openRecipeModal(recipe = null) {
   document.getElementById('recipeName').value = recipe?.name || '';
 
   document.getElementById('deleteRecipeBtn').style.display = recipe ? 'block' : 'none';
+
+  // 🔥 ВАЖЛИВО
+  state.recipeDraft = [];
+
+  fillIngredientProducts();
+  renderIngredients();
 }
+
+function fillIngredientProducts() {
+  const select = document.getElementById('ingredientProduct');
+
+  select.innerHTML = state.products.map(p =>
+    `<option value="${p.id}">${p.name}</option>`
+  ).join('');
+}
+
+function onAddIngredient() {
+  const product_id = document.getElementById('ingredientProduct').value;
+  const qty = parseFloat(document.getElementById('ingredientQty').value);
+
+  if (!qty || qty <= 0) {
+    alert('Введи кількість');
+    return;
+  }
+
+  state.recipeDraft.push({
+    product_id,
+    quantity: qty
+  });
+
+  renderIngredients();
+}
+
+function renderIngredients() {
+  const el = document.getElementById('ingredientsList');
+
+  el.innerHTML = state.recipeDraft.map((i, idx) => {
+    const name = state.products.find(p => p.id === i.product_id)?.name;
+
+    return `
+      <div class="list-item">
+        ${name} — ${i.quantity}
+
+        <button onclick="removeIngredient(${idx})">❌</button>
+      </div>
+    `;
+  }).join('');
+}
+
+window.removeIngredient = (index) => {
+  state.recipeDraft.splice(index, 1);
+  renderIngredients();
+};
 
 async function onAddRecipe() {
   const name = document.getElementById('recipeName').value;
@@ -418,15 +468,36 @@ async function onAddRecipe() {
 }
 
 async function onSaveRecipe() {
-  if (!state.currentRecipe) return;
+  const name = document.getElementById('recipeName').value;
+
+  if (!name) {
+    alert('Введи назву');
+    return;
+  }
 
   if (state.recipeDraft.length === 0) {
     alert('Додай інгредієнти');
     return;
   }
 
+  let recipeId;
+
+  if (state.editingRecipe) {
+    recipeId = state.editingRecipe.id;
+
+    await api.updateRecipe(recipeId, { name });
+
+  } else {
+    const recipe = await api.addRecipe({
+      name,
+      user_id: state.user.id
+    });
+
+    recipeId = recipe[0].id;
+  }
+
   const version = await api.createRecipeVersion(
-    state.currentRecipe,
+    recipeId,
     state.user.id
   );
 
@@ -438,15 +509,18 @@ async function onSaveRecipe() {
 
   await api.addRecipeIngredients(ingredients);
 
-  alert('Збережено ✅');
+  state.recipes = await api.getRecipes();
+  ui.renderRecipes(state.recipes);
 
-  closeRecipeEditor();
+  closeRecipeModal();
 }
 
 function closeRecipeModal() {
   document.getElementById('recipeModal').style.display = 'none';
 
   state.editingRecipe = null;
+  state.recipeDraft = [];
 
   document.getElementById('recipeName').value = '';
+  document.getElementById('ingredientsList').innerHTML = '';
 }
