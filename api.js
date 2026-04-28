@@ -113,7 +113,10 @@ export async function createRecipeVersion(recipe_id, user_id, portions) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error(error);
+    return null;
+  }
 
   return data;
 }
