@@ -7,7 +7,7 @@ export const state = {
   currentRecipe: null,
   editingProduct: null,
   editingRecipe: null,
-  editingVersion: version || null,
+  editingVersion: null,
   recipeDraft: [],
   currentVersions: [],
   currentVersionIndex: 0,
