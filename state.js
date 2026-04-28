@@ -6,5 +6,7 @@ export const state = {
   menu: [],
   pantry: [],
   currentRecipe: null,
+  editingProduct = null,
+  editingRecipe = null,
   recipeDraft: []
 };
