@@ -90,26 +90,31 @@ export async function getRecipes() {
   );
 }
 
-export async function addRecipe(recipe) {
-  const { data, error } = await supabase
+export async function addRecipe(data) {
+  const { data: res, error } = await supabase
     .from('recipes')
-    .insert(recipe)
-    .select()
-    .single();   // 🔥 КРИТИЧНО
-
-  if (error) throw error;
-
-  return data;
-}
-
-export async function createRecipeVersion(recipe_id, user_id) {
-  const { data, error } = await supabase
-    .from('recipe_versions')
-    .insert({ recipe_id, user_id })
+    .insert(data)
     .select()
     .single();
 
   if (error) throw error;
+
+  return res;
+}
+
+export async function createRecipeVersion(recipe_id, user_id, portions) {
+  const { data, error } = await supabase
+    .from('recipe_versions')
+    .insert({
+      recipe_id,
+      user_id,
+      portions
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
   return data;
 }
 
