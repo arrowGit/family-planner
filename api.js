@@ -149,6 +149,17 @@ async function openRecipeView(recipeId) {
   document.getElementById('recipeViewModal').style.display = 'flex';
 }
 
+export async function setMainRecipeVersion(recipe_id, version_id) {
+  const { error } = await supabase
+    .from('recipes')
+    .update({ main_version_id: version_id })
+    .eq('id', recipe_id);
+
+  if (error) {
+    console.error(error);
+  }
+}
+
 function renderRecipeView() {
   const recipe = state.currentRecipe;
   const versions = state.currentVersions;
