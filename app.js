@@ -87,6 +87,10 @@ function bindUI() {
   document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
   document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
   document.getElementById('closeEditorBtn')?.addEventListener('click', closeRecipeEditor);
+
+  document.getElementById('openAddProductBtn')?.addEventListener('click', () => openProductModal());
+  document.getElementById('saveProductBtn')?.addEventListener('click', onSaveProduct);
+  document.getElementById('closeProductModalBtn')?.addEventListener('click', closeProductModal);
    
   // ===== MENU MODAL =====
   //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
@@ -189,44 +193,6 @@ window.cook = async (recipe_id, portions) => {
   await loadDay(date);
 };
 
-async function onAddProduct() {
-  const name = document.getElementById('productName').value;
-  const unit = document.getElementById('productUnit').value;
-  const calories = parseFloat(document.getElementById('productCalories').value);
-
-  if (!name || !unit) {
-    alert('Заповни назву і одиницю');
-    return;
-  }
-
-  await api.addProduct({
-    name,
-    unit,
-    calories_per_unit: calories || null,
-    user_id: state.user.id
-  });
-
-  state.products = await api.getProducts();
-  ui.renderProducts(state.products);
-}
-
-async function onAddRecipe() {
-  const name = document.getElementById('recipeName').value;
-
-  if (!name) {
-    alert('Введи назву');
-    return;
-  }
-
-  await api.addRecipe({
-    name,
-    user_id: state.user.id
-  });
-
-  state.recipes = await api.getRecipes();
-  ui.renderRecipes(state.recipes);
-}
-
 async function onSaveMenuItem() {
   const type = document.getElementById('itemType').value;
   const id = document.getElementById('itemSelect').value;
@@ -324,8 +290,117 @@ async function upsertMenuItem({ type, id, qty, meal, date }) {
 }
 
 /* =========================
+   Products
+========================= */
+async function onAddProduct() {
+  const name = document.getElementById('productName').value;
+  const unit = document.getElementById('productUnit').value;
+  const calories = parseFloat(document.getElementById('productCalories').value);
+
+  if (!name || !unit) {
+    alert('Заповни назву і одиницю');
+    return;
+  }
+
+  await api.addProduct({
+    name,
+    unit,
+    calories_per_unit: calories || null,
+    user_id: state.user.id
+  });
+
+  state.products = await api.getProducts();
+  ui.renderProducts(state.products);
+}
+
+function openProductModal(product = null) {
+  state.editingProduct = product;
+
+  document.getElementById('productModal').style.display = 'flex';
+
+  document.getElementById('productName').value = product?.name || '';
+  document.getElementById('productUnit').value = product?.unit || '';
+  document.getElementById('productCalories').value = product?.calories_per_unit || '';
+
+  document.getElementById('deleteProductBtn').style.display = product ? 'block' : 'none';
+}
+
+async function onSaveProduct() {
+  const name = document.getElementById('productName').value;
+  const unit = document.getElementById('productUnit').value;
+  const calories = parseFloat(document.getElementById('productCalories').value);
+
+  if (!name || !unit) {
+    alert('Заповни поля');
+    return;
+  }
+
+  if (state.editingProduct) {
+    await api.updateProduct(state.editingProduct.id, {
+      name,
+      unit,
+      calories_per_unit: calories
+    });
+  } else {
+    await api.addProduct({
+      name,
+      unit,
+      calories_per_unit: calories,
+      user_id: state.user.id
+    });
+  }
+
+  state.products = await api.getProducts();
+  ui.renderProducts(state.products);
+
+  closeProductModal();
+}
+
+window.deleteProduct = async (id) => {
+  if (!confirm('Видалити продукт?')) return;
+
+  await api.deleteProduct(id);
+
+  state.products = await api.getProducts();
+  ui.renderProducts(state.products);
+};
+
+window.editProduct = (id) => {
+  const product = state.products.find(p => p.id === id);
+  openProductModal(product);
+};
+
+
+
+/* =========================
    Recipes
 ========================= */
+function openRecipeModal(recipe = null) {
+  state.editingRecipe = recipe;
+
+  document.getElementById('recipeModal').style.display = 'flex';
+
+  document.getElementById('recipeName').value = recipe?.name || '';
+
+  document.getElementById('deleteRecipeBtn').style.display = recipe ? 'block' : 'none';
+}
+
+async function onAddRecipe() {
+  const name = document.getElementById('recipeName').value;
+
+  if (!name) {
+    alert('Введи назву');
+    return;
+  }
+
+  await api.addRecipe({
+    name,
+    user_id: state.user.id
+  });
+
+  state.recipes = await api.getRecipes();
+  ui.renderRecipes(state.recipes);
+}
 
 function openRecipeEditor(recipeId) {
   state.currentRecipe = recipeId;
