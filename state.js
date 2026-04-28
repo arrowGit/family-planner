@@ -1,6 +1,5 @@
 export const state = {
   user: null,
-
   products: [],
   recipes: [],
   menu: [],
@@ -8,6 +7,7 @@ export const state = {
   currentRecipe: null,
   editingProduct: null,
   editingRecipe: null,
+  editingVersion: version || null,
   recipeDraft: [],
   currentVersions: [],
   currentVersionIndex: 0,
