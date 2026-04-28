@@ -126,8 +126,13 @@ export function renderProducts(products) {
   const el = document.getElementById('productsList');
 
   el.innerHTML = products.map(p => `
-    <div>
+    <div class="list-item">
       ${p.name} (${p.unit})
+
+      <div>
+        <button onclick="editProduct('${p.id}')">✏️</button>
+        <button onclick="deleteProduct('${p.id}')">🗑</button>
+      </div>
     </div>
   `).join('');
 }
@@ -136,9 +141,13 @@ export function renderRecipes(recipes) {
   const el = document.getElementById('recipesList');
 
   el.innerHTML = recipes.map(r => `
-    <div>
+    <div class="list-item">
       ${r.name}
-      <button onclick="openRecipeEditor('${r.id}')">✏️</button>
+
+      <div>
+        <button onclick="editRecipe('${r.id}')">✏️</button>
+        <button onclick="deleteRecipe('${r.id}')">🗑</button>
+      </div>
     </div>
   `).join('');
 }
