@@ -83,6 +83,10 @@ export async function updateProduct(id, data) {
 ========================= */
 
 export async function getRecipes(user_id) {
+  if (!user_id) {
+    console.warn('⛔ getRecipes без user_id');
+    return [];
+  }
   const { data, error } = await supabase
     .from('recipes')
     .select(`
