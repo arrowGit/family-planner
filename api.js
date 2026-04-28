@@ -89,7 +89,7 @@ export async function getRecipes(user_id) {
       id,
       name,
       main_version_id,
-      recipe_versions (
+      recipe_versions!recipe_versions_recipe_id_fkey (
         id,
         portions
       )
