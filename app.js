@@ -476,6 +476,8 @@ async function onAddRecipe() {
 }
 
 async function onSaveRecipe() {
+  let recipe = state.editingRecipe;
+
   const name = document.getElementById('recipeName').value;
 
   if (!name) {
@@ -483,29 +485,23 @@ async function onSaveRecipe() {
     return;
   }
 
+  // 🔥 якщо новий
+  if (!recipe) {
+    recipe = await api.addRecipe({
+      name,
+      user_id: state.user.id
+    });
+
+    state.editingRecipe = recipe;
+  }
+
   if (state.recipeDraft.length === 0) {
     alert('Додай інгредієнти');
     return;
   }
 
-  let recipeId;
-
-  if (state.editingRecipe) {
-    recipeId = state.editingRecipe.id;
-
-    await api.updateRecipe(recipeId, { name });
-
-  } else {
-    const recipe = await api.addRecipe({
-      name,
-      user_id: state.user.id
-    });
-
-    recipeId = recipe[0].id;
-  }
-
   const version = await api.createRecipeVersion(
-    recipeId,
+    recipe.id,
     state.user.id
   );
 
