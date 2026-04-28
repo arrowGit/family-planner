@@ -140,16 +140,30 @@ export function renderProducts(products) {
 export function renderRecipes(recipes) {
   const el = document.getElementById('recipesList');
 
-  el.innerHTML = recipes.map(r => `
-    <div class="list-item">
-      ${r.name}
+  el.innerHTML = recipes.map(r => {
+    const main = r.recipe_versions.find(v => v.id === r.main_version_id);
+    const portions = main?.portions || '?';
+    const versionsCount = r.recipe_versions.length;
 
-      <div>
-        <button onclick="editRecipe('${r.id}')">✏️</button>
-        <button onclick="deleteRecipe('${r.id}')">🗑</button>
+    return `
+      <div class="list-item">
+        <span class="recipe-link" data-id="${r.id}">
+          ${r.name} (${portions} порц. | ${versionsCount} верс.)
+        </span>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  bindRecipeClicks();
+}
+
+function bindRecipeClicks() {
+  document.querySelectorAll('.recipe-link').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      openRecipeView(id);
+    });
+  });
 }
 
 function renderMenuItem(i) {
