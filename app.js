@@ -490,6 +490,13 @@ async function onSaveRecipe() {
     return;
   }
 
+  const portions = parseFloat(document.getElementById('recipePortions').value);
+
+  if (!portions || portions <= 0) {
+    alert('Вкажи кількість порцій');
+    return;
+  }
+   
   // 🔥 якщо новий
   if (!recipe) {
     const created = await api.addRecipe({
@@ -513,7 +520,8 @@ async function onSaveRecipe() {
 
   const version = await api.createRecipeVersion(
     recipe.id,
-    state.user.id
+    state.user.id,
+    portions
   );
 
   const ingredients = state.recipeDraft.map(i => ({
