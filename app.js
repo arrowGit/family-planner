@@ -108,7 +108,11 @@ function bindUI() {
     state.viewVersionIndex = (state.viewVersionIndex - 1 + versions.length) % versions.length;
     renderRecipeView();
   });
-
+  document.getElementById('editVersionBtn')?.addEventListener('click', () => {
+    const recipe = state.viewRecipe;
+    const version = recipe.recipe_versions[state.viewVersionIndex];
+    openRecipeModal(recipe, version);
+  });
   document.getElementById('nextVersionBtn')?.addEventListener('click', () => {
     const versions = state.viewRecipe.recipe_versions;
     state.viewVersionIndex = (state.viewVersionIndex + 1) % versions.length;
@@ -486,7 +490,7 @@ async function renderViewIngredients(versionId) {
   }).join('');
 }
 
-async function openRecipeModal(recipe = null) {
+async function openRecipeModal(recipe = null, version = null) {
   state.editingRecipe = recipe;
 
   document.getElementById('recipeModal').style.display = 'flex';
