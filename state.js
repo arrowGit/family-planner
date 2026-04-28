@@ -11,6 +11,6 @@ export const state = {
   recipeDraft: [],
   currentVersions: [],
   currentVersionIndex: 0,
-  viewRecipe: null;
-  viewVersionIndex: 0;
+  viewRecipe: null,
+  viewVersionIndex: 0
 };
