@@ -111,6 +111,7 @@ function bindUI() {
   document.getElementById('editVersionBtn')?.addEventListener('click', () => {
     const recipe = state.viewRecipe;
     const version = recipe.recipe_versions[state.viewVersionIndex];
+    closeRecipeViewModal();
     openRecipeModal(recipe, version);
   });
   document.getElementById('nextVersionBtn')?.addEventListener('click', () => {
@@ -130,6 +131,8 @@ function bindUI() {
     recipe.main_version_id = version.id;
     renderRecipeView();
   });
+
+   
    
   // ===== MENU MODAL =====
   //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
@@ -157,6 +160,10 @@ function bindRecipeClicks() {
       openRecipeView(recipe);
     });
   });
+}
+
+function closeRecipeViewModal() {
+  document.getElementById('recipeViewModal').style.display = 'none';
 }
 
 /* =========================
