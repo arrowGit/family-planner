@@ -91,9 +91,15 @@ export async function getRecipes() {
 }
 
 export async function addRecipe(recipe) {
-  return await handle(
-    supabase.from('recipes').insert(recipe)
-  );
+  const { data, error } = await supabase
+    .from('recipes')
+    .insert(recipe)
+    .select()
+    .single();   // 🔥 КРИТИЧНО
+
+  if (error) throw error;
+
+  return data;
 }
 
 export async function createRecipeVersion(recipe_id, user_id) {
