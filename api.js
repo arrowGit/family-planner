@@ -228,20 +228,6 @@ export async function createRecipeVersion(recipe_id, user_id, portions) {
   return version;
 }
 
-export async function setMainRecipeVersion(recipe_id, version_id) {
-  const { error } = await supabase
-    .from('recipes')
-    .update({ main_version_id: version_id })
-    .eq('id', recipe_id);
-
-  if (error) {
-    console.error(error);
-    return false;
-  }
-
-  return true;
-}
-
 export async function addRecipeIngredients(ingredients) {
   return await handle(
     supabase.from('recipe_ingredients').insert(ingredients)
