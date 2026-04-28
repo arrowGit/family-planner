@@ -64,6 +64,20 @@ export async function addProduct(product) {
     supabase.from('products').insert(product)
   );
 }
+
+export async function deleteProduct(id) {
+  return await handle(
+    supabase.from('products').delete().eq('id', id)
+  );
+}
+
+export async function updateProduct(id, data) {
+  return await handle(
+    supabase.from('products').update(data).eq('id', id)
+  );
+}
+
+
 /* =========================
    RECIPES
 ========================= */
@@ -96,6 +110,18 @@ export async function createRecipeVersion(recipe_id, user_id) {
 export async function addRecipeIngredients(ingredients) {
   return await handle(
     supabase.from('recipe_ingredients').insert(ingredients)
+  );
+}
+
+export async function deleteRecipe(id) {
+  return await handle(
+    supabase.from('recipes').delete().eq('id', id)
+  );
+}
+
+export async function updateRecipe(id, data) {
+  return await handle(
+    supabase.from('recipes').update(data).eq('id', id)
   );
 }
 
