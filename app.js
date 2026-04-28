@@ -417,53 +417,6 @@ async function onAddRecipe() {
   ui.renderRecipes(state.recipes);
 }
 
-function openRecipeEditor(recipeId) {
-  state.currentRecipe = recipeId;
-  state.recipeDraft = [];
-
-  document.getElementById('recipeEditor').style.display = 'block';
-
-  fillIngredientProducts();
-  renderIngredients();
-}
-
-window.openRecipeEditor = openRecipeEditor;
-
-function fillIngredientProducts() {
-  const select = document.getElementById('ingredientProduct');
-
-  select.innerHTML = state.products.map(p =>
-    `<option value="${p.id}">${p.name}</option>`
-  ).join('');
-}
-
-function onAddIngredient() {
-  const product_id = document.getElementById('ingredientProduct').value;
-  const qty = parseFloat(document.getElementById('ingredientQty').value);
-
-  if (!qty || qty <= 0) {
-    alert('Введи кількість');
-    return;
-  }
-
-  state.recipeDraft.push({
-    product_id,
-    quantity: qty
-  });
-
-  renderIngredients();
-}
-
-function renderIngredients() {
-  const el = document.getElementById('ingredientsList');
-
-  el.innerHTML = state.recipeDraft.map(i => {
-    const name = state.products.find(p => p.id === i.product_id)?.name;
-
-    return `<div>${name} — ${i.quantity}</div>`;
-  }).join('');
-}
-
 async function onSaveRecipe() {
   if (!state.currentRecipe) return;
 
@@ -488,13 +441,6 @@ async function onSaveRecipe() {
   alert('Збережено ✅');
 
   closeRecipeEditor();
-}
-
-function closeRecipeEditor() {
-  document.getElementById('recipeEditor').style.display = 'none';
-
-  state.currentRecipe = null;
-  state.recipeDraft = [];
 }
 
 function closeRecipeModal() {
