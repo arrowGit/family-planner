@@ -54,50 +54,61 @@
 
     <!-- RECIPES AND PRODUCTS  -->
     <div id="tab-db" class="tab" style="display:none;">
-
-      <div id="recipeEditor" style="display:none; border:1px solid #ccc; padding:10px; margin-top:10px;">
-      
-        <h3 id="editorTitle">Редактор рецепта</h3>
-      
-        <div id="ingredientsList"></div>
-      
-        <select id="ingredientProduct"></select>
-        <input id="ingredientQty" type="number" placeholder="Кількість">
-      
-        <button id="addIngredientBtn">Додати інгредієнт</button>
-      
-        <hr>
-      
-        <button id="saveRecipeBtn">💾 Зберегти версію</button>
-        <button id="closeEditorBtn">Закрити</button>
-      
+    
+      <div class="db-actions">
+        <button id="openAddProductBtn">➕ Продукт</button>
+        <button id="openAddRecipeBtn">➕ Рецепт</button>
       </div>
-
-      
+    
       <h3>Продукти</h3>
-    
-      <input id="productName" placeholder="Назва">
-      <input id="productUnit" placeholder="Одиниця (кг, шт)">
-      <input id="productCalories" type="number" placeholder="Ккал">
-    
-      <button id="addProductBtn">Додати продукт</button>
-    
       <div id="productsList"></div>
     
       <hr>
     
       <h3>Рецепти</h3>
-    
-      <input id="recipeName" placeholder="Назва рецепту">
-      <button id="addRecipeBtn">Додати рецепт</button>
-    
       <div id="recipesList"></div>
     
     </div>
-
   </div>
 
 </div>
+
+<div class="overlay" id="productModal">
+  <div class="overlay-content">
+
+    <h3 id="productModalTitle">Продукт</h3>
+
+    <input id="productName" placeholder="Назва">
+    <input id="productUnit" placeholder="Одиниця">
+    <input id="productCalories" type="number" placeholder="Ккал">
+
+    <button id="saveProductBtn">Зберегти</button>
+    <button id="deleteProductBtn" style="display:none;">🗑 Видалити</button>
+    <button id="closeProductModalBtn">Закрити</button>
+
+  </div>
+</div>
+
+<div class="overlay" id="recipeModal">
+  <div class="overlay-content">
+
+    <h3 id="recipeModalTitle">Рецепт</h3>
+
+    <input id="recipeName" placeholder="Назва">
+
+    <button id="saveRecipeBtn">Зберегти</button>
+    <button id="deleteRecipeBtn" style="display:none;">🗑 Видалити</button>
+
+    <hr>
+
+    <button id="editIngredientsBtn">✏️ Інгредієнти</button>
+
+    <button id="closeRecipeModalBtn">Закрити</button>
+
+  </div>
+</div>
+
+  
 <script type="module" src="app.js"></script>
 </body>
 </html>
