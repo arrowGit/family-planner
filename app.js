@@ -5,6 +5,8 @@ import { supabase } from './supabase.js';
 
 let tabsInitialized = false;
 let uiBound  = false;
+let loading = false;
+
 
 /* =========================
    CACHE
@@ -21,10 +23,6 @@ async function init() {
   state.user = data.session?.user || null;
 
   ui.renderAuth();
-
-  if (state.user) {
-    await loadAppData();
-  }
 
   supabase.auth.onAuthStateChange(async (_event, session) => {
     state.user = session?.user || null;
@@ -46,6 +44,7 @@ init();
 ========================= */
 
 async function loadAppData(force = false) {
+  if (loading) return;
   if (appLoaded && !force) return;
 
   if (!state.user?.id) {
