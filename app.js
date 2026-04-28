@@ -100,6 +100,34 @@ function bindUI() {
   document.getElementById('recipeModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'recipeModal') closeRecipeModal();
   });
+  document.getElementById('prevVersionBtn')?.addEventListener('click', () => {
+    if (state.currentVersionIndex > 0) {
+      state.currentVersionIndex--;
+      renderRecipeView();
+    }
+  });
+  document.getElementById('nextVersionBtn')?.addEventListener('click', () => {
+    if (state.currentVersionIndex < state.currentVersions.length - 1) {
+      state.currentVersionIndex++;
+      renderRecipeView();
+    }
+  });
+  document.getElementById('setMainBtn')?.addEventListener('click', async () => {
+    const version = state.currentVersions[state.currentVersionIndex];
+    await api.setMainRecipeVersion(
+      state.currentRecipe.id,
+      version.id
+    );
+    await loadAppData(true);
+    renderRecipeView();
+  });
+  document.getElementById('editVersionBtn')?.addEventListener('click', () => {
+    const version = state.currentVersions[state.currentVersionIndex];
+    openRecipeModal(state.currentRecipe, version);
+  });
+  document.getElementById('closeRecipeViewBtn')?.addEventListener('click', () => {
+    document.getElementById('recipeViewModal').style.display = 'none';
+  });
 
    
   // ===== MENU MODAL =====
