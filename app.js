@@ -80,17 +80,23 @@ function bindUI() {
   uiBound = true;
  
   // ===== PRODUCTS =====
-  document.getElementById('addProductBtn')?.addEventListener('click', onAddProduct);
 
   // ===== RECIPES =====
-  document.getElementById('addRecipeBtn')?.addEventListener('click', onAddRecipe);
-  document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
   document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
-  document.getElementById('closeEditorBtn')?.addEventListener('click', closeRecipeEditor);
-
   document.getElementById('openAddProductBtn')?.addEventListener('click', () => openProductModal());
   document.getElementById('saveProductBtn')?.addEventListener('click', onSaveProduct);
   document.getElementById('closeProductModalBtn')?.addEventListener('click', closeProductModal);
+  document.getElementById('openAddRecipeBtn')?.addEventListener('click', () => openRecipeModal());
+
+  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', closeRecipeModal);
+  document.getElementById('productModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'productModal') closeProductModal();
+  });
+
+  document.getElementById('recipeModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'recipeModal') closeRecipeModal();
+  });
+
    
   // ===== MENU MODAL =====
   //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
@@ -370,7 +376,16 @@ window.editProduct = (id) => {
   openProductModal(product);
 };
 
+function closeProductModal() {
+  document.getElementById('productModal').style.display = 'none';
 
+  state.editingProduct = null;
+
+  // очистка форми (важливо)
+  document.getElementById('productName').value = '';
+  document.getElementById('productUnit').value = '';
+  document.getElementById('productCalories').value = '';
+}
 
 /* =========================
    Recipes
@@ -480,4 +495,12 @@ function closeRecipeEditor() {
 
   state.currentRecipe = null;
   state.recipeDraft = [];
+}
+
+function closeRecipeModal() {
+  document.getElementById('recipeModal').style.display = 'none';
+
+  state.editingRecipe = null;
+
+  document.getElementById('recipeName').value = '';
 }
