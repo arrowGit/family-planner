@@ -51,7 +51,7 @@ async function loadAppData(force = false) {
     console.warn('⛔ user_id відсутній');
     return;
   }
-
+  loading = true;
   try {
     const data = await api.loadAppData(state.user.id);
 
@@ -76,6 +76,8 @@ async function loadAppData(force = false) {
   } catch (err) {
     console.error(err);
     alert('Помилка завантаження даних');
+  } finally {
+     loading = false;
   }
 }
 
