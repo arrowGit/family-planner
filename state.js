@@ -8,5 +8,7 @@ export const state = {
   currentRecipe: null,
   editingProduct: null,
   editingRecipe: null,
-  recipeDraft: []
+  recipeDraft: [],
+  currentVersions: [],
+  currentVersionIndex: 0
 };
