@@ -141,6 +141,23 @@ function bindUI() {
 
 }
 
+function bindRecipeClicks() {
+  document.querySelectorAll('.recipe-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+
+      const recipe = state.recipes.find(r => r.id === id);
+
+      if (!recipe) {
+        console.warn('Recipe not found', id);
+        return;
+      }
+
+      openRecipeView(recipe);
+    });
+  });
+}
+
 /* =========================
    RESET
 ========================= */
@@ -159,6 +176,7 @@ function resetState() {
 function renderApp() {
   ui.renderProducts(state.products);
   ui.renderRecipes(state.recipes);
+  bindRecipeClicks();
   ui.renderInventory(state.inventory);
   bindUI();
 }
