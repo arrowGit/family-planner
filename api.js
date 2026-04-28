@@ -254,6 +254,20 @@ export async function getRecipeIngredients(recipe_id) {
   return ingredients || [];
 }
 
+export async function getIngredientsByVersion(version_id) {
+  const { data, error } = await supabase
+    .from('recipe_ingredients')
+    .select('*')
+    .eq('recipe_version_id', version_id);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data;
+}
+
 export async function deleteRecipe(id) {
   return await handle(
     supabase.from('recipes').delete().eq('id', id)
