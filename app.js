@@ -474,9 +474,6 @@ function renderRecipeView() {
 
   renderViewIngredients(version.id);
 
-  // кнопка "основна"
-  const isMain = version.id === recipe.main_version_id;
-
   document.getElementById('makeMainBtn').style.display =
     isMain ? 'none' : 'block';
 }
