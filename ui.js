@@ -141,29 +141,17 @@ export function renderRecipes(recipes) {
   const el = document.getElementById('recipesList');
 
   el.innerHTML = recipes.map(r => {
-    const main = r.recipe_versions.find(v => v.id === r.main_version_id);
-    const portions = main?.portions || '?';
-    const versionsCount = r.recipe_versions.length;
+    const versionsCount = r.recipe_versions?.length || 0;
+
+    const mainVersion = r.recipe_versions?.find(v => v.id === r.main_version_id);
 
     return `
-      <div class="list-item">
-        <span class="recipe-link" data-id="${r.id}">
-          ${r.name} (${portions} порц. | ${versionsCount} верс.)
-        </span>
+      <div class="list-item recipe-item" data-id="${r.id}">
+        ${r.name}
+        (${mainVersion?.portions || '?'} порц., ${versionsCount} верс.)
       </div>
     `;
   }).join('');
-
-  bindRecipeClicks();
-}
-
-function bindRecipeClicks() {
-  document.querySelectorAll('.recipe-link').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = el.dataset.id;
-      openRecipeView(id);
-    });
-  });
 }
 
 function renderMenuItem(i) {
