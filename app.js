@@ -492,11 +492,17 @@ async function onSaveRecipe() {
 
   // 🔥 якщо новий
   if (!recipe) {
-    recipe = await api.addRecipe({
+    const created = await api.addRecipe({
       name,
       user_id: state.user.id
     });
 
+    if (!created) {
+      alert('Помилка створення рецепта');
+      return;
+    }
+
+    recipe = created;
     state.editingRecipe = recipe;
   }
 
