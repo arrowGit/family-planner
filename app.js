@@ -686,6 +686,7 @@ function closeRecipeModal() {
 
   state.editingRecipe = null;
   state.recipeDraft = [];
+  state.editingVersion = null;
 
   document.getElementById('recipeName').value = '';
   document.getElementById('ingredientsList').innerHTML = '';
