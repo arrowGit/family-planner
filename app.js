@@ -48,6 +48,11 @@ init();
 async function loadAppData(force = false) {
   if (appLoaded && !force) return;
 
+  if (!state.user?.id) {
+    console.warn('⛔ user_id відсутній');
+    return;
+  }
+
   try {
     const data = await api.loadAppData(state.user.id);
 
