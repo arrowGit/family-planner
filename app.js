@@ -468,8 +468,9 @@ function renderRecipeView() {
 
   document.getElementById('viewRecipeName').innerHTML = `
     ${recipe.name} ${isMain ? '⭐' : ''}
-  `;  document.getElementById('viewRecipeMeta').innerText =
-      `Порції: ${version.portions}`;
+  `;  
+  document.getElementById('viewRecipeMeta').innerText =
+    `Порції: ${version.portions} | Версія ${state.viewVersionIndex + 1} з ${versions.length}`;
 
   renderViewIngredients(version.id);
 
@@ -505,31 +506,31 @@ async function openRecipeModal(recipe = null, version = null) {
   // 🔥 НОВЕ
   state.recipeDraft = [];
 
-   if (version) {
-     // 🔥 редагування конкретної версії
-     document.getElementById('recipePortions').value = version.portions;
-   
-     const ingredients = await api.getIngredientsByVersion(version.id);
-   
-     state.recipeDraft = ingredients.map(i => ({
-       product_id: i.product_id,
-       quantity: i.quantity
-     }));
-   
-   } else if (recipe) {
-     // 🔥 fallback (наприклад старий режим)
-     document.getElementById('recipePortions').value = '';
-   
-     const ingredients = await api.getRecipeIngredients(recipe.id);
-   
-     state.recipeDraft = ingredients.map(i => ({
-       product_id: i.product_id,
-       quantity: i.quantity
-     }));
-   
-   } else {
-     document.getElementById('recipePortions').value = '';
-   }
+  if (version) {
+    // 🔥 редагування конкретної версії
+    document.getElementById('recipePortions').value = version.portions;
+
+    const ingredients = await api.getIngredientsByVersion(version.id);
+
+    state.recipeDraft = ingredients.map(i => ({
+      product_id: i.product_id,
+      quantity: i.quantity
+    }));
+
+  } else if (recipe) {
+    // 🔥 fallback (наприклад старий режим)
+    document.getElementById('recipePortions').value = '';
+
+    const ingredients = await api.getRecipeIngredients(recipe.id);
+
+    state.recipeDraft = ingredients.map(i => ({
+      product_id: i.product_id,
+      quantity: i.quantity
+    }));
+
+  } else {
+    document.getElementById('recipePortions').value = '';
+  }
 
   fillIngredientProducts();
   renderIngredients();
