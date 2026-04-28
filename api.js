@@ -283,7 +283,7 @@ export async function loadAppData(user_id) {
       inventory
     ] = await Promise.all([
       getProducts(),
-      getRecipes(),
+      getRecipes(user_id),
       getInventory(user_id)
     ]);
 
