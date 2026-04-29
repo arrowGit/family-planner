@@ -96,7 +96,10 @@ function bindUI() {
   document.getElementById('openAddRecipeBtn')?.addEventListener('click', () => openRecipeModal());
   document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
   document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
-  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', closeRecipeModal);
+  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', (e) => {
+    closeRecipeModal();
+    openRecipeView(recipe);
+  });
   document.getElementById('recipeModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'recipeModal') closeRecipeModal();
   });
@@ -682,10 +685,15 @@ async function onSaveRecipe() {
     await api.addRecipeIngredients(ingredients);
   }
 
-  state.recipes = await api.getRecipes(state.user.id);
+  const updatedRecipes = await api.getRecipes(state.user.id);
+  state.recipes = updatedRecipes;
+
+  const fresh = updatedRecipes.find(r => r.id === recipe.id);
   ui.renderRecipes(state.recipes);
 
   closeRecipeModal();
+  // 🔥 відкрити назад перегляд рецепта
+  openRecipeView(fresh);
 }
 
 function closeRecipeModal() {
