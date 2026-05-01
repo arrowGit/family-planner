@@ -183,15 +183,30 @@ function renderMenuItem(i) {
   `;
 }
 
-export function renderInventory(items) {
+export function renderInventory(dishes) {
   const el = document.getElementById('inventory');
+  el.innerHTML = '';
 
-  el.innerHTML = items.map(i => `
-    <div>
-      ${i.product_id || i.recipe_id} — ${i.qty}
-      <button onclick="consume('${i.product_id}', '${i.recipe_id}', 1)">Спожити</button>
-    </div>
-  `).join('');
+  if (!dishes.length) {
+    el.innerHTML = '<p>Склад порожній</p>';
+    return;
+  }
+
+  dishes.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'inventory-item';
+
+    div.innerHTML = `
+      <div>
+        <b>${d.dishes?.name || 'Без назви'}</b>
+      </div>
+      <div>
+        ${Number(d.portions).toFixed(1)} порцій
+      </div>
+    `;
+
+    el.appendChild(div);
+  });
 }
 
 export function renderShopping(items) {
