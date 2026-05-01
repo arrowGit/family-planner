@@ -1,5 +1,6 @@
 export const state = {
   user: null,
+  familyId: null,
   products: [],
   recipes: [],
   menu: [],
