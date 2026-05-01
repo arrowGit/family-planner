@@ -391,3 +391,53 @@ export async function loadAppData(user_id) {
     throw err;
   }
 }
+
+// =========================
+// INVENTORY (DISHES)
+// =========================
+
+export async function getInventoryDishes(familyId) {
+  const { data, error } = await supabase
+    .from('inventory_dishes')
+    .select(`
+      dish_id,
+      portions,
+      dishes (id, name)
+    `)
+    .eq('family_id', familyId)
+    .order('portions', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+// =========================
+// COOK DISH
+// =========================
+
+export async function cookDish({ family_id, dish_id, recipe_id, portions }) {
+  const { error } = await supabase
+    .from('inventory_movements')
+    .insert({
+      family_id,
+      dish_id,
+      recipe_id,
+      quantity: portions,
+      movement_type: 'cook'
+    });
+
+  if (error) throw error;
+}
+
+// =========================
+// CONSUME FROM MENU
+// =========================
+
+export async function consumeFromMenu(familyId, menuDayId) {
+  const { error } = await supabase.rpc('consume_from_menu', {
+    p_family_id: familyId,
+    p_menu_day_id: menuDayId
+  });
+
+  if (error) throw error;
+}
