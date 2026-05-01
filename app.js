@@ -53,7 +53,13 @@ async function loadAppData(force = false) {
   }
   loading = true;
   try {
-    const data = await api.loadAppData(state.user.id);
+    const family = await api.getMyFamily();
+    if (!family) {
+      alert('Створи сімʼю');
+      return;
+    }
+    state.familyId = family.id;
+    const data = await api.loadAppData(state.familyId);
 
     state.products = data.products;
     state.recipes = data.recipes;
@@ -96,15 +102,14 @@ function bindUI() {
   document.getElementById('openAddRecipeBtn')?.addEventListener('click', () => openRecipeModal());
   document.getElementById('saveRecipeBtn')?.addEventListener('click', onSaveRecipe);
   document.getElementById('addIngredientBtn')?.addEventListener('click', onAddIngredient);
-  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', (e) => {
+  document.getElementById('closeRecipeModalBtn')?.addEventListener('click', () => {
     closeRecipeModal();
-    openRecipeView(recipe);
+    if (state.viewRecipe) {
+      openRecipeView(state.viewRecipe);
+    }
   });
   document.getElementById('recipeModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'recipeModal') closeRecipeModal();
-  });
-  document.getElementById('closeRecipeViewBtn')?.addEventListener('click', () => {
-    document.getElementById('recipeViewModal').style.display = 'none';
   });
   document.getElementById('prevVersionBtn')?.addEventListener('click', () => {
     const versions = state.viewRecipe.recipe_versions;
@@ -216,7 +221,7 @@ function initTabs() {
 ========================= */
 
 async function loadDay(date) {
-  const data = await api.getMenuByDate(date, state.user.id);
+  const data = await api.getMenuByDate(date, state.familyId);
   ui.renderMenu(data);
 }
 
@@ -227,7 +232,7 @@ window.loadDay = loadDay;
 ========================= */
 
 async function refreshInventory() {
-  state.inventory = await api.getInventory(state.user.id);
+  state.inventory = await api.getInventory(state.familyId);
   ui.renderInventory(state.inventory);
 }
 
@@ -237,7 +242,7 @@ async function refreshInventory() {
 
 window.consume = async (product_id, recipe_id, qty) => {
   await api.consumeItem({
-    p_user_id: state.user.id,
+    p_family_id: state.familyId,
     p_product_id: product_id,
     p_recipe_id: recipe_id,
     p_quantity: qty
@@ -250,7 +255,7 @@ window.consume = async (product_id, recipe_id, qty) => {
 
 window.cook = async (recipe_id, portions) => {
   await api.cookRecipe({
-    p_user_id: state.user.id,
+    p_family_id: state.familyId,
     p_recipe_id: recipe_id,
     p_portions: portions
   });
@@ -298,7 +303,7 @@ async function onCalcShopping() {
     return;
   }
   const items = await api.getShoppingList(
-    state.user.id,
+    state.familyId,
     date,
     date
   );
@@ -338,7 +343,10 @@ function fillSelect() {
 async function upsertMenuItem({ type, id, qty, meal, date }) {
   const { data: day } = await supabase
     .from('menu_days')
-    .upsert({ date, user_id: state.user.id }, { onConflict: 'date,user_id' })
+    .upsert(
+      { date, family_id: state.familyId },
+      { onConflict: 'family_id,date' }
+    )
     .select()
     .single();
 
@@ -685,7 +693,7 @@ async function onSaveRecipe() {
     await api.addRecipeIngredients(ingredients);
   }
 
-  const updatedRecipes = await api.getRecipes(state.user.id);
+  const updatedRecipes = await api.getRecipes(state.familyId);
   state.recipes = updatedRecipes;
 
   const fresh = updatedRecipes.find(r => r.id === recipe.id);
