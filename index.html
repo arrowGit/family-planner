@@ -42,14 +42,24 @@
     </div>
 
     <!-- INVENTORY -->
-    <div class="tab" id="tab-inventory" style="display:none;">
-      <div id="inventory"></div>
+    <div class="subtabs">
+      <button data-subtab="products" class="active">🥕 Продукти</button>
+      <button data-subtab="dishes">🍲 Страви</button>
     </div>
+    
+    <div id="inventoryProducts"></div>
+    <div id="inventoryDishes" style="display:none;"></div>
 
     <!-- SHOPPING -->
-    <div class="tab" id="tab-shopping" style="display:none;">
+    <div id="tab-shopping" class="tab" style="display:none;">
       <button id="calcShoppingBtn">Розрахувати</button>
+    
       <div id="shopping"></div>
+    
+      <hr>
+    
+      <h3>Вартість</h3>
+      <div id="cost"></div>
     </div>
 
     <!-- RECIPES AND PRODUCTS  -->
@@ -136,6 +146,46 @@
     <button id="makeMainBtn">⭐ Зробити основною</button>
     <button id="editVersionBtn">✏️ Редагувати</button>
     <button id="closeRecipeViewBtn">Закрити</button>
+    <button id="useRecipeBtn">🍳 Приготувати</button>
+    <button id="addToMenuBtn">📅 В меню</button>
+
+  </div>
+</div>
+
+<div class="overlay" id="dayModal">
+  <div class="overlay-content">
+
+    <h3 id="dayTitle">День</h3>
+
+    <div id="dayMeals"></div>
+
+    <hr>
+
+    <button id="addDishBtn">➕ Страва</button>
+
+    <button id="consumeDayBtn">🍽 З'їдено</button>
+    <button id="closeDayModalBtn">Закрити</button>
+
+  </div>
+</div>
+
+<div class="overlay" id="dishPickerModal">
+  <div class="overlay-content">
+
+    <h3>Обрати страву</h3>
+
+    <input id="dishSearch" placeholder="Назва страви">
+
+    <div id="dishResults"></div>
+
+    <hr>
+
+    <div id="recipeVariants"></div>
+
+    <input id="dishPortions" type="number" value="1">
+
+    <button id="addDishToMenuBtn">Додати</button>
+    <button id="closeDishPickerBtn">Закрити</button>
 
   </div>
 </div>
