@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 
 /* =========================
-   HELPERS
+   CORE
 ========================= */
 
 async function handle(query) {
@@ -51,7 +51,7 @@ export async function loginWithGoogle() {
 ========================= */
 
 export async function createFamily(name = 'My family') {
-  const { data: family, error } = await supabase
+  const { data, error } = await supabase
     .from('families')
     .insert({ name })
     .select()
@@ -59,14 +59,12 @@ export async function createFamily(name = 'My family') {
 
   if (error) throw error;
 
-  await supabase
-    .from('family_members')
-    .insert({
-      family_id: family.id,
-      role: 'owner'
-    });
+  await supabase.from('family_members').insert({
+    family_id: data.id,
+    role: 'owner'
+  });
 
-  return family;
+  return data;
 }
 
 export async function getMyFamily() {
@@ -74,13 +72,15 @@ export async function getMyFamily() {
     .from('family_members')
     .select(`
       family_id,
-      families (id, name)
+      families (
+        id,
+        name
+      )
     `)
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
-  if (!data) return null;
+  if (error || !data) return null;
 
   return {
     id: data.family_id,
@@ -92,121 +92,98 @@ export async function getMyFamily() {
    PRODUCTS
 ========================= */
 
-export async function getProducts() {
+export function getProducts() {
   return handle(
-    supabase
-      .from('products')
-      .select('*')
-      .order('name')
+    supabase.from('products').select('*').order('name')
   );
 }
 
-export async function addProduct(data) {
+export function addProduct(data) {
   return handle(
-    supabase
-      .from('products')
-      .insert(data)
-      .select()
-      .single()
+    supabase.from('products').insert(data)
   );
 }
 
-export async function updateProduct(id, data) {
+export function updateProduct(id, data) {
   return handle(
-    supabase
-      .from('products')
-      .update(data)
-      .eq('id', id)
+    supabase.from('products').update(data).eq('id', id)
   );
 }
 
-export async function deleteProduct(id) {
+export function deleteProduct(id) {
   return handle(
-    supabase
-      .from('products')
-      .delete()
-      .eq('id', id)
+    supabase.from('products').delete().eq('id', id)
   );
 }
 
 /* =========================
-   DISHES (recipes)
+   DISHES
 ========================= */
 
-export async function getDishes(user_id) {
+export function getDishes(user_id) {
   return handle(
     supabase
       .from('dishes')
-      .select(`
-        *,
-        recipe_versions (*)
-      `)
+      .select('*')
       .eq('created_by', user_id)
       .order('name')
   );
 }
 
-export async function addDish(data) {
+export function addDish(data) {
   return handle(
-    supabase
-      .from('dishes')
-      .insert(data)
-      .select()
-      .single()
+    supabase.from('dishes').insert(data).select().single()
   );
 }
 
-export async function updateDish(id, data) {
+export function updateDish(id, data) {
   return handle(
-    supabase
-      .from('dishes')
-      .update(data)
-      .eq('id', id)
+    supabase.from('dishes').update(data).eq('id', id)
   );
 }
 
-export async function deleteDish(id) {
+export function deleteDish(id) {
   return handle(
-    supabase
-      .from('dishes')
-      .delete()
-      .eq('id', id)
+    supabase.from('dishes').delete().eq('id', id)
   );
 }
 
 /* =========================
-   RECIPE VERSIONS
+   RECIPE VARIANTS
 ========================= */
 
-export async function createRecipeVersion(dish_id, user_id, portions) {
+export function getRecipeVariants(dish_id) {
   return handle(
     supabase
-      .from('recipe_versions')
+      .from('recipe_variants')
+      .select('*')
+      .eq('dish_id', dish_id)
+      .order('created_at')
+  );
+}
+
+export async function createRecipeVariant(dish_id, portions) {
+  const user = await getSession();
+
+  return handle(
+    supabase
+      .from('recipe_variants')
       .insert({
         dish_id,
-        created_by: user_id,
-        portions
+        portions,
+        created_by: user.id
       })
       .select()
       .single()
   );
 }
 
-export async function updateRecipeVersion(id, data) {
+export function updateRecipeVariant(id, data) {
   return handle(
     supabase
-      .from('recipe_versions')
+      .from('recipe_variants')
       .update(data)
       .eq('id', id)
-  );
-}
-
-export async function setMainRecipeVersion(dish_id, version_id) {
-  return handle(
-    supabase
-      .from('dishes')
-      .update({ main_version_id: version_id })
-      .eq('id', dish_id)
   );
 }
 
@@ -214,29 +191,27 @@ export async function setMainRecipeVersion(dish_id, version_id) {
    INGREDIENTS
 ========================= */
 
-export async function getIngredientsByVersion(version_id) {
+export function getIngredientsByVariant(variant_id) {
   return handle(
     supabase
       .from('recipe_ingredients')
       .select('*')
-      .eq('recipe_version_id', version_id)
+      .eq('recipe_id', variant_id)
   );
 }
 
-export async function addRecipeIngredients(rows) {
+export function addIngredients(rows) {
   return handle(
-    supabase
-      .from('recipe_ingredients')
-      .insert(rows)
+    supabase.from('recipe_ingredients').insert(rows)
   );
 }
 
-export async function deleteIngredientsByVersion(version_id) {
+export function deleteIngredientsByVariant(variant_id) {
   return handle(
     supabase
       .from('recipe_ingredients')
       .delete()
-      .eq('recipe_version_id', version_id)
+      .eq('recipe_id', variant_id)
   );
 }
 
@@ -244,7 +219,7 @@ export async function deleteIngredientsByVersion(version_id) {
    MENU
 ========================= */
 
-export async function getMenuByDate(date, family_id) {
+export function getMenuByDate(date, family_id) {
   return handle(
     supabase
       .from('menu_days')
@@ -262,11 +237,22 @@ export async function getMenuByDate(date, family_id) {
   );
 }
 
-export async function addMenuItem(data) {
+export function upsertMenuDay(date, family_id) {
   return handle(
     supabase
-      .from('menu_items')
-      .insert(data)
+      .from('menu_days')
+      .upsert(
+        { date, family_id },
+        { onConflict: 'family_id,date' }
+      )
+      .select()
+      .single()
+  );
+}
+
+export function addMenuItem(payload) {
+  return handle(
+    supabase.from('menu_items').insert(payload)
   );
 }
 
@@ -274,7 +260,7 @@ export async function addMenuItem(data) {
    INVENTORY
 ========================= */
 
-export async function getInventoryProducts(family_id) {
+export function getInventoryProducts(family_id) {
   return handle(
     supabase
       .from('inventory_products')
@@ -283,7 +269,7 @@ export async function getInventoryProducts(family_id) {
   );
 }
 
-export async function getInventoryDishes(family_id) {
+export function getInventoryDishes(family_id) {
   return handle(
     supabase
       .from('inventory_dishes')
@@ -293,31 +279,67 @@ export async function getInventoryDishes(family_id) {
         dishes (id, name)
       `)
       .eq('family_id', family_id)
-      .order('portions', { ascending: false })
   );
 }
 
 /* =========================
-   ACTIONS
+   ACTIONS (КЛЮЧОВЕ 🔥)
 ========================= */
 
-export async function cookRecipe({
-  p_family_id,
-  p_recipe_id,
-  p_portions
-}) {
+// 🍳 ГОТУВАННЯ = додати dish у склад
+export function cookDish({ family_id, dish_id, recipe_id, portions }) {
   return handle(
-    supabase.rpc('cook_recipe', {
-      p_family_id,
-      p_recipe_id,
-      p_portions
+    supabase.from('inventory_movements').insert({
+      family_id,
+      dish_id,
+      recipe_id,
+      quantity: portions,
+      movement_type: 'cook'
     })
   );
 }
 
-export async function consumeItem(payload) {
+// ✔ СПОЖИВАННЯ ОДНОГО ITEM (з меню)
+export async function consumeItem({
+  family_id,
+  product_id,
+  recipe_id,
+  dish_id,
+  quantity
+}) {
+  if (product_id) {
+    return handle(
+      supabase.from('inventory_movements').insert({
+        family_id,
+        product_id,
+        quantity: -quantity,
+        movement_type: 'consume'
+      })
+    );
+  }
+
+  if (recipe_id && dish_id) {
+    return handle(
+      supabase.from('inventory_movements').insert({
+        family_id,
+        dish_id,
+        recipe_id,
+        quantity: -quantity,
+        movement_type: 'consume'
+      })
+    );
+  }
+
+  throw new Error('Invalid consume payload');
+}
+
+// 🍽 СПОЖИТИ ВЕСЬ ДЕНЬ
+export function consumeDay(family_id, menu_day_id) {
   return handle(
-    supabase.rpc('consume_item', payload)
+    supabase.rpc('consume_from_menu', {
+      p_family_id: family_id,
+      p_menu_day_id: menu_day_id
+    })
   );
 }
 
@@ -325,7 +347,7 @@ export async function consumeItem(payload) {
    SHOPPING
 ========================= */
 
-export async function getShoppingList(family_id, from, to) {
+export function getShoppingList(family_id, from, to) {
   return handle(
     supabase.rpc('get_shopping_list_v3', {
       p_family_id: family_id,
@@ -336,7 +358,7 @@ export async function getShoppingList(family_id, from, to) {
 }
 
 /* =========================
-   APP INIT
+   APP LOAD
 ========================= */
 
 export async function loadAppData(family_id, user_id) {
