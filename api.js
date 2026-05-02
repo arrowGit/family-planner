@@ -58,15 +58,12 @@ export async function createFamily(name = 'My family') {
 
   if (error) throw error;
 
-  // 🔥 додаємо себе в сім'ю
-  const { error: memberError } = await supabase
+  await supabase
     .from('family_members')
     .insert({
-      family_id: family.id
-      // user_id береться з auth.uid() через RLS
+      family_id: family.id,
+      role: 'owner'
     });
-
-  if (memberError) throw memberError;
 
   return family;
 }
