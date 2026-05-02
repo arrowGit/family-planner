@@ -49,6 +49,7 @@ export async function loginWithGoogle() {
 /* =========================
    FAMILY
 ========================= */
+
 export async function createFamily(name = 'My family') {
   const { data: family, error } = await supabase
     .from('families')
@@ -113,191 +114,116 @@ export async function addProduct(product) {
   );
 }
 
-export async function deleteProduct(id) {
-  return await handle(
-    supabase.from('products').delete().eq('id', id)
-  );
-}
-
 export async function updateProduct(id, data) {
   return await handle(
     supabase.from('products').update(data).eq('id', id)
   );
 }
 
+export async function deleteProduct(id) {
+  return await handle(
+    supabase.from('products').delete().eq('id', id)
+  );
+}
 
 /* =========================
-   RECIPES
+   DISHES
 ========================= */
 
-export async function getRecipeFull(recipe_id) {
-  const { data, error } = await supabase
-    .from('recipe_versions')
-    .select(`
-      id,
-      portions,
-      created_at,
-      recipe_ingredients (
-        product_id,
-        quantity
-      )
-    `)
-    .eq('recipe_id', recipe_id)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data;
-}
-
-export async function getRecipes(family_id) {
-  const { data, error } = await supabase
-    .from('recipes')
-    .select(`
-      id,
-      name,
-      main_version_id,
-      recipe_versions!recipe_versions_recipe_id_fkey (
-        id,
-        portions
-      )
-    `)
-    .eq('family_id', family_id); // 🔥 було user_id
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data;
-}
-
-export async function setMainRecipeVersion(recipe_id, version_id) {
-  const { error } = await supabase
-    .from('recipes')
-    .update({ main_version_id: version_id })
-    .eq('id', recipe_id);
-
-  if (error) {
-    console.error(error);
-  }
-}
-
-export async function addRecipe(data) {
-  const { data: res, error } = await supabase
-    .from('recipes')
-    .insert(data)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return res;
-}
-
-export async function createRecipeVersion(recipe_id, user_id, portions) {
-  const { data: version, error } = await supabase
-    .from('recipe_versions')
-    .insert({
-      recipe_id,
-      user_id,
-      portions
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    return null;
-  }
-
-  // 🔥 перевіряємо чи є вже main_version
-  const { data: recipe } = await supabase
-    .from('recipes')
-    .select('main_version_id')
-    .eq('id', recipe_id)
-    .single();
-
-  if (!recipe.main_version_id) {
-    await supabase
-      .from('recipes')
-      .update({ main_version_id: version.id })
-      .eq('id', recipe_id);
-  }
-
-  return version;
-}
-
-export async function addRecipeIngredients(ingredients) {
+export async function getDishes(user_id) {
   return await handle(
-    supabase.from('recipe_ingredients').insert(ingredients)
+    supabase
+      .from('dishes')
+      .select('*')
+      .eq('created_by', user_id)
+      .order('name')
   );
 }
 
-export async function getRecipeIngredients(recipe_id) {
-  // беремо останню версію рецепта
-  const { data: version } = await supabase
-    .from('recipe_versions')
-    .select('*')
-    .eq('recipe_id', recipe_id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!version) return [];
-
-  const { data: ingredients } = await supabase
-    .from('recipe_ingredients')
-    .select('*')
-    .eq('recipe_version_id', version.id);
-
-  return ingredients || [];
-}
-
-export async function getIngredientsByVersion(version_id) {
-  const { data, error } = await supabase
-    .from('recipe_ingredients')
-    .select('*')
-    .eq('recipe_version_id', version_id);
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data;
-}
-
-export async function deleteIngredientsByVersion(version_id) {
+export async function addDish(data) {
   return await handle(
-    supabase
-      .from('recipe_ingredients')
-      .delete()
-      .eq('recipe_version_id', version_id)
+    supabase.from('dishes').insert(data)
   );
 }
 
-export async function updateRecipeVersion(id, data) {
+export async function updateDish(id, data) {
+  return await handle(
+    supabase.from('dishes').update(data).eq('id', id)
+  );
+}
+
+export async function deleteDish(id) {
+  return await handle(
+    supabase.from('dishes').delete().eq('id', id)
+  );
+}
+
+/* =========================
+   RECIPE VARIANTS
+========================= */
+
+export async function getRecipeVariants(dish_id) {
   return await handle(
     supabase
-      .from('recipe_versions')
+      .from('recipe_variants')
+      .select('*')
+      .eq('dish_id', dish_id)
+      .order('created_at')
+  );
+}
+
+export async function createRecipeVariant({ dish_id, portions }) {
+  const user = await getSession();
+
+  return await handle(
+    supabase
+      .from('recipe_variants')
+      .insert({
+        dish_id,
+        portions,
+        created_by: user.id
+      })
+      .select()
+      .single()
+  );
+}
+
+export async function updateRecipeVariant(id, data) {
+  return await handle(
+    supabase
+      .from('recipe_variants')
       .update(data)
       .eq('id', id)
   );
 }
 
-export async function deleteRecipe(id) {
+/* =========================
+   INGREDIENTS
+========================= */
+
+export async function getIngredients(recipe_id) {
   return await handle(
-    supabase.from('recipes').delete().eq('id', id)
+    supabase
+      .from('recipe_ingredients')
+      .select('*')
+      .eq('recipe_id', recipe_id)
   );
 }
 
-export async function updateRecipe(id, data) {
+export async function addIngredients(rows) {
   return await handle(
-    supabase.from('recipes').update(data).eq('id', id)
+    supabase
+      .from('recipe_ingredients')
+      .insert(rows)
+  );
+}
+
+export async function deleteIngredients(recipe_id) {
+  return await handle(
+    supabase
+      .from('recipe_ingredients')
+      .delete()
+      .eq('recipe_id', recipe_id)
   );
 }
 
@@ -309,26 +235,31 @@ export async function getMenuByDate(date, family_id) {
   return await handle(
     supabase
       .from('menu_days')
-      .select('id, menu_items(*)')
+      .select(`
+        id,
+        menu_items (
+          *,
+          dishes (id, name),
+          products (id, name)
+        )
+      `)
       .eq('date', date)
-      .eq('family_id', family_id) // 🔥 було user_id
+      .eq('family_id', family_id)
       .maybeSingle()
   );
 }
 
 export async function addMenuItem(payload) {
   return await handle(
-    supabase
-      .from('menu_items')
-      .insert(payload)
+    supabase.from('menu_items').insert(payload)
   );
 }
 
 /* =========================
-   INVENTORY / PANTRY
+   INVENTORY
 ========================= */
 
-export async function getInventory(family_id) {
+export async function getInventoryProducts(family_id) {
   return await handle(
     supabase
       .from('inventory_products')
@@ -337,19 +268,44 @@ export async function getInventory(family_id) {
   );
 }
 
-/* =========================
-   ACTIONS (RPC)
-========================= */
-
-export async function consumeItem(payload) {
+export async function getInventoryDishes(family_id) {
   return await handle(
-    supabase.rpc('consume_item', payload)
+    supabase
+      .from('inventory_dishes')
+      .select(`
+        dish_id,
+        portions,
+        dishes (id, name)
+      `)
+      .eq('family_id', family_id)
+      .order('portions', { ascending: false })
   );
 }
 
-export async function cookRecipe(payload) {
+/* =========================
+   ACTIONS
+========================= */
+
+export async function cookDish({ family_id, dish_id, recipe_id, portions }) {
   return await handle(
-    supabase.rpc('cook_recipe', payload)
+    supabase
+      .from('inventory_movements')
+      .insert({
+        family_id,
+        dish_id,
+        recipe_id,
+        quantity: portions,
+        movement_type: 'cook'
+      })
+  );
+}
+
+export async function consumeFromMenu(family_id, menu_day_id) {
+  return await handle(
+    supabase.rpc('consume_from_menu', {
+      p_family_id: family_id,
+      p_menu_day_id: menu_day_id
+    })
   );
 }
 
@@ -359,8 +315,8 @@ export async function cookRecipe(payload) {
 
 export async function getShoppingList(family_id, from, to) {
   return await handle(
-    supabase.rpc('get_shopping_list_v2', {
-      p_family_id: family_id, // 🔥 було p_user_id
+    supabase.rpc('get_shopping_list_v3', {
+      p_family_id: family_id,
       p_date_from: from,
       p_date_to: to
     })
@@ -368,79 +324,32 @@ export async function getShoppingList(family_id, from, to) {
 }
 
 /* =========================
-   🔥 APP INIT (NEW)
+   APP INIT
 ========================= */
 
-export async function loadAppData(family_id) {
+export async function loadAppData(family_id, user_id) {
   try {
     const [
       products,
-      recipes,
-      inventory
+      dishes,
+      inventoryProducts,
+      inventoryDishes
     ] = await Promise.all([
       getProducts(),
-      //getRecipes(family_id),
-      getInventory(family_id)
+      getDishes(user_id),
+      getInventoryProducts(family_id),
+      getInventoryDishes(family_id)
     ]);
 
     return {
       products,
-      recipes,
-      inventory
+      dishes,
+      inventoryProducts,
+      inventoryDishes
     };
 
   } catch (err) {
     console.error('loadAppData error:', err);
     throw err;
   }
-}
-
-// =========================
-// INVENTORY (DISHES)
-// =========================
-
-export async function getInventoryDishes(familyId) {
-  const { data, error } = await supabase
-    .from('inventory_dishes')
-    .select(`
-      dish_id,
-      portions,
-      dishes (id, name)
-    `)
-    .eq('family_id', familyId)
-    .order('portions', { ascending: false });
-
-  if (error) throw error;
-  return data;
-}
-
-// =========================
-// COOK DISH
-// =========================
-
-export async function cookDish({ family_id, dish_id, recipe_id, portions }) {
-  const { error } = await supabase
-    .from('inventory_movements')
-    .insert({
-      family_id,
-      dish_id,
-      recipe_id,
-      quantity: portions,
-      movement_type: 'cook'
-    });
-
-  if (error) throw error;
-}
-
-// =========================
-// CONSUME FROM MENU
-// =========================
-
-export async function consumeFromMenu(familyId, menuDayId) {
-  const { error } = await supabase.rpc('consume_from_menu', {
-    p_family_id: familyId,
-    p_menu_day_id: menuDayId
-  });
-
-  if (error) throw error;
 }
