@@ -56,6 +56,7 @@ async function loadAppData(force = false) {
     const family = await api.getMyFamily();
     if (!family) {
       alert('Створи сімʼю');
+      loading = false;
       return;
     }
     state.familyId = family.id;
@@ -109,7 +110,10 @@ function bindUI() {
     }
   });
   document.getElementById('recipeModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'recipeModal') closeRecipeModal();
+    if (e.target.id === 'recipeModal') {
+      closeRecipeModal();
+      if (state.viewRecipe) openRecipeView(state.viewRecipe);
+    }
   });
   document.getElementById('prevVersionBtn')?.addEventListener('click', () => {
     const versions = state.viewRecipe.recipe_versions;
@@ -154,20 +158,15 @@ function bindUI() {
 }
 
 function bindRecipeClicks() {
-  document.querySelectorAll('.recipe-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = el.dataset.id;
+  document.getElementById('recipesList').onclick = (e) => {
+    const el = e.target.closest('.recipe-item');
+    if (!el) return;
 
-      const recipe = state.recipes.find(r => r.id === id);
+    const id = el.dataset.id;
+    const recipe = state.recipes.find(r => r.id === id);
 
-      if (!recipe) {
-        console.warn('Recipe not found', id);
-        return;
-      }
-
-      openRecipeView(recipe);
-    });
-  });
+    if (recipe) openRecipeView(recipe);
+  };
 }
 
 function closeRecipeViewModal() {
@@ -502,7 +501,7 @@ async function renderViewIngredients(versionId) {
   const el = document.getElementById('viewIngredients');
 
   el.innerHTML = ingredients.map(i => {
-    const name = state.products.find(p => p.id === i.product_id)?.name;
+    const name = state.products.find(p => p.id === i.product_id)?.name || '???';
 
     return `<div>${name} — ${i.quantity}</div>`;
   }).join('');
