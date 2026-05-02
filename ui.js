@@ -184,29 +184,42 @@ function renderMenuItem(i) {
 }
 
 export function renderInventory(inventory) {
-  const el = document.getElementById('inventory');
+  renderInventoryProducts(inventory.products);
+  renderInventoryDishes(inventory.dishes);
+}
 
+function renderInventoryProducts(products) {
+  const el = document.getElementById('inventoryProducts');
   if (!el) return;
 
-  const dishes = inventory.dishes;
+  if (!products.length) {
+    el.innerHTML = '<p>Немає продуктів</p>';
+    return;
+  }
+
+  el.innerHTML = products.map(p => `
+    <div class="inventory-item">
+      ${p.name || '❓'} — ${p.quantity || 0}
+    </div>
+  `).join('');
+}
+
+function renderInventoryDishes(dishes) {
+  const el = document.getElementById('inventoryDishes');
+  if (!el) return;
 
   if (!dishes.length) {
-    el.innerHTML = '<p>Склад порожній</p>';
+    el.innerHTML = '<p>Немає страв</p>';
     return;
   }
 
   el.innerHTML = dishes.map(d => `
     <div class="inventory-item">
-      <div>
-        <b>${d.dishes?.name || 'Без назви'}</b>
-      </div>
-      <div>
-        ${Number(d.portions).toFixed(1)} порцій
-      </div>
+      <b>${d.dishes?.name || 'Без назви'}</b>
+      — ${Number(d.portions).toFixed(1)} порцій
     </div>
   `).join('');
 }
-
 export function renderShopping(items) {
   const el = document.getElementById('shopping');
 
