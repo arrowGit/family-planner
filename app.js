@@ -55,12 +55,17 @@ async function loadAppData(force = false) {
   try {
     const family = await api.getMyFamily();
     if (!family) {
-      alert('Створи сімʼю');
-      loading = false;
-      return;
+      console.log('🏠 Створюємо сімʼю...');
+   
+      const created = await api.createFamily();
+   
+      state.familyId = created.id;
+   
+    } else {
+      state.familyId = family.id;
     }
-    state.familyId = family.id;
-    const data = await api.loadAppData(state.familyId);
+
+     const data = await api.loadAppData(state.familyId);
 
     state.products = data.products;
     state.recipes = data.recipes;
