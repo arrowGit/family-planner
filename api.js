@@ -46,6 +46,23 @@ export async function loginWithGoogle() {
   });
 }
 
+export async function getMyFamily() {
+  const { data, error } = await supabase
+    .from('family_members')
+    .select('family_id')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return { id: data.family_id };
+}
+
 /* =========================
    PRODUCTS
 ========================= */
@@ -105,11 +122,7 @@ export async function getRecipeFull(recipe_id) {
   return data;
 }
 
-export async function getRecipes(user_id) {
-  if (!user_id) {
-    console.warn('⛔ getRecipes без user_id');
-    return [];
-  }
+export async function getRecipes(family_id) {
   const { data, error } = await supabase
     .from('recipes')
     .select(`
@@ -121,7 +134,7 @@ export async function getRecipes(user_id) {
         portions
       )
     `)
-    .eq('user_id', user_id);
+    .eq('family_id', family_id); // 🔥 було user_id
 
   if (error) {
     console.error(error);
@@ -129,24 +142,6 @@ export async function getRecipes(user_id) {
   }
 
   return data;
-}
-
-async function openRecipeView(recipeId) {
-  const recipe = state.recipes.find(r => r.id === recipeId);
-
-  const versions = await api.getRecipeFull(recipeId);
-
-  state.currentRecipe = recipe;
-  state.currentVersions = versions;
-
-  // 👉 знаходимо індекс основної версії
-  const index = versions.findIndex(v => v.id === recipe.main_version_id);
-
-  state.currentVersionIndex = index >= 0 ? index : 0;
-
-  renderRecipeView();
-
-  document.getElementById('recipeViewModal').style.display = 'flex';
 }
 
 export async function setMainRecipeVersion(recipe_id, version_id) {
@@ -158,29 +153,6 @@ export async function setMainRecipeVersion(recipe_id, version_id) {
   if (error) {
     console.error(error);
   }
-}
-
-function renderRecipeView() {
-  const recipe = state.currentRecipe;
-  const versions = state.currentVersions;
-  const i = state.currentVersionIndex;
-
-  const version = versions[i];
-
-  document.getElementById('viewRecipeTitle').innerText = recipe.name;
-
-  document.getElementById('versionInfo').innerText =
-    `Версія ${i + 1} / ${versions.length}`;
-
-  document.getElementById('viewPortions').innerText =
-    `Порцій: ${version.portions}`;
-
-  const ingredientsHTML = version.recipe_ingredients.map(i => {
-    const name = state.products.find(p => p.id === i.product_id)?.name;
-    return `<div>${name} — ${i.quantity}</div>`;
-  }).join('');
-
-  document.getElementById('viewIngredients').innerHTML = ingredientsHTML;
 }
 
 export async function addRecipe(data) {
@@ -302,13 +274,13 @@ export async function updateRecipe(id, data) {
    MENU
 ========================= */
 
-export async function getMenuByDate(date, user_id) {
+export async function getMenuByDate(date, family_id) {
   return await handle(
     supabase
       .from('menu_days')
       .select('id, menu_items(*)')
       .eq('date', date)
-      .eq('user_id', user_id)
+      .eq('family_id', family_id) // 🔥 було user_id
       .maybeSingle()
   );
 }
@@ -325,12 +297,12 @@ export async function addMenuItem(payload) {
    INVENTORY / PANTRY
 ========================= */
 
-export async function getInventory(user_id) {
+export async function getInventory(family_id) {
   return await handle(
     supabase
       .from('inventory')
       .select('*')
-      .eq('user_id', user_id)
+      .eq('family_id', family_id) // 🔥 було user_id
   );
 }
 
@@ -354,10 +326,10 @@ export async function cookRecipe(payload) {
    SHOPPING
 ========================= */
 
-export async function getShoppingList(user_id, from, to) {
+export async function getShoppingList(family_id, from, to) {
   return await handle(
     supabase.rpc('get_shopping_list_v2', {
-      p_user_id: user_id,
+      p_family_id: family_id, // 🔥 було p_user_id
       p_date_from: from,
       p_date_to: to
     })
@@ -368,7 +340,7 @@ export async function getShoppingList(user_id, from, to) {
    🔥 APP INIT (NEW)
 ========================= */
 
-export async function loadAppData(user_id) {
+export async function loadAppData(family_id) {
   try {
     const [
       products,
@@ -376,8 +348,8 @@ export async function loadAppData(user_id) {
       inventory
     ] = await Promise.all([
       getProducts(),
-      getRecipes(user_id),
-      getInventory(user_id)
+      getRecipes(family_id),
+      getInventory(family_id)
     ]);
 
     return {
