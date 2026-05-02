@@ -32,7 +32,7 @@ export async function loginWithEmail(email) {
   return supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: 'https://arrowgit.github.io/family-planner/'
+      emailRedirectTo: location.origin
     }
   });
 }
@@ -41,7 +41,7 @@ export async function loginWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://arrowgit.github.io/family-planner/'
+      redirectTo: location.origin
     }
   });
 }
@@ -74,19 +74,12 @@ export async function getMyFamily() {
     .from('family_members')
     .select(`
       family_id,
-      families (
-        id,
-        name
-      )
+      families (id, name)
     `)
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    console.error(error);
-    return null;
-  }
-
+  if (error) throw error;
   if (!data) return null;
 
   return {
@@ -100,7 +93,7 @@ export async function getMyFamily() {
 ========================= */
 
 export async function getProducts() {
-  return await handle(
+  return handle(
     supabase
       .from('products')
       .select('*')
@@ -108,97 +101,112 @@ export async function getProducts() {
   );
 }
 
-export async function addProduct(product) {
-  return await handle(
-    supabase.from('products').insert(product)
+export async function addProduct(data) {
+  return handle(
+    supabase
+      .from('products')
+      .insert(data)
+      .select()
+      .single()
   );
 }
 
 export async function updateProduct(id, data) {
-  return await handle(
-    supabase.from('products').update(data).eq('id', id)
+  return handle(
+    supabase
+      .from('products')
+      .update(data)
+      .eq('id', id)
   );
 }
 
 export async function deleteProduct(id) {
-  return await handle(
-    supabase.from('products').delete().eq('id', id)
+  return handle(
+    supabase
+      .from('products')
+      .delete()
+      .eq('id', id)
   );
 }
 
 /* =========================
-   DISHES
+   DISHES (recipes)
 ========================= */
 
 export async function getDishes(user_id) {
-  if (!user_id) {
-    console.warn('getDishes: missing user_id');
-    return [];
-  }
-
-  return await handle(
+  return handle(
     supabase
       .from('dishes')
-      .select('*')
+      .select(`
+        *,
+        recipe_versions (*)
+      `)
       .eq('created_by', user_id)
       .order('name')
   );
 }
 
 export async function addDish(data) {
-  return await handle(
-    supabase.from('dishes').insert(data)
+  return handle(
+    supabase
+      .from('dishes')
+      .insert(data)
+      .select()
+      .single()
   );
 }
 
 export async function updateDish(id, data) {
-  return await handle(
-    supabase.from('dishes').update(data).eq('id', id)
+  return handle(
+    supabase
+      .from('dishes')
+      .update(data)
+      .eq('id', id)
   );
 }
 
 export async function deleteDish(id) {
-  return await handle(
-    supabase.from('dishes').delete().eq('id', id)
+  return handle(
+    supabase
+      .from('dishes')
+      .delete()
+      .eq('id', id)
   );
 }
 
 /* =========================
-   RECIPE VARIANTS
+   RECIPE VERSIONS
 ========================= */
 
-export async function getRecipeVariants(dish_id) {
-  return await handle(
+export async function createRecipeVersion(dish_id, user_id, portions) {
+  return handle(
     supabase
-      .from('recipe_variants')
-      .select('*')
-      .eq('dish_id', dish_id)
-      .order('created_at')
-  );
-}
-
-export async function createRecipeVariant({ dish_id, portions }) {
-  const user = await getSession();
-
-  return await handle(
-    supabase
-      .from('recipe_variants')
+      .from('recipe_versions')
       .insert({
         dish_id,
-        portions,
-        created_by: user.id
+        created_by: user_id,
+        portions
       })
       .select()
       .single()
   );
 }
 
-export async function updateRecipeVariant(id, data) {
-  return await handle(
+export async function updateRecipeVersion(id, data) {
+  return handle(
     supabase
-      .from('recipe_variants')
+      .from('recipe_versions')
       .update(data)
       .eq('id', id)
+  );
+}
+
+export async function setMainRecipeVersion(dish_id, version_id) {
+  return handle(
+    supabase
+      .from('dishes')
+      .update({ main_version_id: version_id })
+      .eq('id', dish_id)
   );
 }
 
@@ -206,29 +214,29 @@ export async function updateRecipeVariant(id, data) {
    INGREDIENTS
 ========================= */
 
-export async function getIngredients(recipe_id) {
-  return await handle(
+export async function getIngredientsByVersion(version_id) {
+  return handle(
     supabase
       .from('recipe_ingredients')
       .select('*')
-      .eq('recipe_id', recipe_id)
+      .eq('recipe_version_id', version_id)
   );
 }
 
-export async function addIngredients(rows) {
-  return await handle(
+export async function addRecipeIngredients(rows) {
+  return handle(
     supabase
       .from('recipe_ingredients')
       .insert(rows)
   );
 }
 
-export async function deleteIngredients(recipe_id) {
-  return await handle(
+export async function deleteIngredientsByVersion(version_id) {
+  return handle(
     supabase
       .from('recipe_ingredients')
       .delete()
-      .eq('recipe_id', recipe_id)
+      .eq('recipe_version_id', version_id)
   );
 }
 
@@ -237,7 +245,7 @@ export async function deleteIngredients(recipe_id) {
 ========================= */
 
 export async function getMenuByDate(date, family_id) {
-  return await handle(
+  return handle(
     supabase
       .from('menu_days')
       .select(`
@@ -254,9 +262,11 @@ export async function getMenuByDate(date, family_id) {
   );
 }
 
-export async function addMenuItem(payload) {
-  return await handle(
-    supabase.from('menu_items').insert(payload)
+export async function addMenuItem(data) {
+  return handle(
+    supabase
+      .from('menu_items')
+      .insert(data)
   );
 }
 
@@ -265,7 +275,7 @@ export async function addMenuItem(payload) {
 ========================= */
 
 export async function getInventoryProducts(family_id) {
-  return await handle(
+  return handle(
     supabase
       .from('inventory_products')
       .select('*')
@@ -274,7 +284,7 @@ export async function getInventoryProducts(family_id) {
 }
 
 export async function getInventoryDishes(family_id) {
-  return await handle(
+  return handle(
     supabase
       .from('inventory_dishes')
       .select(`
@@ -291,26 +301,23 @@ export async function getInventoryDishes(family_id) {
    ACTIONS
 ========================= */
 
-export async function cookDish({ family_id, dish_id, recipe_id, portions }) {
-  return await handle(
-    supabase
-      .from('inventory_movements')
-      .insert({
-        family_id,
-        dish_id,
-        recipe_id,
-        quantity: portions,
-        movement_type: 'cook'
-      })
+export async function cookRecipe({
+  p_family_id,
+  p_recipe_id,
+  p_portions
+}) {
+  return handle(
+    supabase.rpc('cook_recipe', {
+      p_family_id,
+      p_recipe_id,
+      p_portions
+    })
   );
 }
 
-export async function consumeFromMenu(family_id, menu_day_id) {
-  return await handle(
-    supabase.rpc('consume_from_menu', {
-      p_family_id: family_id,
-      p_menu_day_id: menu_day_id
-    })
+export async function consumeItem(payload) {
+  return handle(
+    supabase.rpc('consume_item', payload)
   );
 }
 
@@ -319,7 +326,7 @@ export async function consumeFromMenu(family_id, menu_day_id) {
 ========================= */
 
 export async function getShoppingList(family_id, from, to) {
-  return await handle(
+  return handle(
     supabase.rpc('get_shopping_list_v3', {
       p_family_id: family_id,
       p_date_from: from,
@@ -333,28 +340,22 @@ export async function getShoppingList(family_id, from, to) {
 ========================= */
 
 export async function loadAppData(family_id, user_id) {
-  try {
-    const [
-      products,
-      dishes,
-      inventoryProducts,
-      inventoryDishes
-    ] = await Promise.all([
-      getProducts(),
-      getDishes(user_id),
-      getInventoryProducts(family_id),
-      getInventoryDishes(family_id)
-    ]);
+  const [
+    products,
+    dishes,
+    inventoryProducts,
+    inventoryDishes
+  ] = await Promise.all([
+    getProducts(),
+    getDishes(user_id),
+    getInventoryProducts(family_id),
+    getInventoryDishes(family_id)
+  ]);
 
-    return {
-      products,
-      dishes,
-      inventoryProducts,
-      inventoryDishes
-    };
-
-  } catch (err) {
-    console.error('loadAppData error:', err);
-    throw err;
-  }
+  return {
+    products,
+    dishes,
+    inventoryProducts,
+    inventoryDishes
+  };
 }
