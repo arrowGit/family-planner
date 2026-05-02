@@ -262,24 +262,26 @@ async function refreshInventory() {
    GLOBAL ACTIONS
 ========================= */
 
-window.consume = async (product_id, recipe_id, qty) => {
+window.consume = async (product_id, recipe_id, dish_id, qty) => {
   await api.consumeItem({
-    p_family_id: state.familyId,
-    p_product_id: product_id,
-    p_recipe_id: recipe_id,
-    p_quantity: qty
+    family_id: state.familyId,
+    product_id,
+    recipe_id,
+    dish_id,
+    quantity: qty
   });
 
-  await refreshInventory(); // 🔥 тільки inventory
+  await refreshInventory();
   const date = document.getElementById('date').value;
-  await loadDay(date); 
+  await loadDay(date);
 };
 
-window.cook = async (recipe_id, portions) => {
-  await api.cookRecipe({
-    p_family_id: state.familyId,
-    p_recipe_id: recipe_id,
-    p_portions: portions
+window.cook = async (recipe_id, dish_id, portions) => {
+  await api.cookDish({
+    family_id: state.familyId,
+    dish_id,
+    recipe_id,
+    portions
   });
 
   await refreshInventory();
