@@ -331,9 +331,9 @@ export async function addMenuItem(payload) {
 export async function getInventory(family_id) {
   return await handle(
     supabase
-      .from('inventory')
+      .from('inventory_products')
       .select('*')
-      .eq('family_id', family_id) // 🔥 було user_id
+      .eq('family_id', family_id)
   );
 }
 
@@ -379,7 +379,7 @@ export async function loadAppData(family_id) {
       inventory
     ] = await Promise.all([
       getProducts(),
-      getRecipes(family_id),
+      //getRecipes(family_id),
       getInventory(family_id)
     ]);
 
