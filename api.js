@@ -46,10 +46,41 @@ export async function loginWithGoogle() {
   });
 }
 
+/* =========================
+   FAMILY
+========================= */
+export async function createFamily(name = 'My family') {
+  const { data: family, error } = await supabase
+    .from('families')
+    .insert({ name })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // 🔥 додаємо себе в сім'ю
+  const { error: memberError } = await supabase
+    .from('family_members')
+    .insert({
+      family_id: family.id
+      // user_id береться з auth.uid() через RLS
+    });
+
+  if (memberError) throw memberError;
+
+  return family;
+}
+
 export async function getMyFamily() {
   const { data, error } = await supabase
     .from('family_members')
-    .select('family_id')
+    .select(`
+      family_id,
+      families (
+        id,
+        name
+      )
+    `)
     .limit(1)
     .maybeSingle();
 
@@ -60,7 +91,10 @@ export async function getMyFamily() {
 
   if (!data) return null;
 
-  return { id: data.family_id };
+  return {
+    id: data.family_id,
+    name: data.families?.name
+  };
 }
 
 /* =========================
