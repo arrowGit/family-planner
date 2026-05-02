@@ -53,6 +53,7 @@ async function loadAppData(force = false) {
   }
   loading = true;
   try {
+    console.log((await supabase.auth.getSession()).data.session)
     const family = await api.getMyFamily();
     if (!family) {
       console.log('🏠 Створюємо сімʼю...');
