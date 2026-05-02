@@ -131,6 +131,11 @@ export async function deleteProduct(id) {
 ========================= */
 
 export async function getDishes(user_id) {
+  if (!user_id) {
+    console.warn('getDishes: missing user_id');
+    return [];
+  }
+
   return await handle(
     supabase
       .from('dishes')
