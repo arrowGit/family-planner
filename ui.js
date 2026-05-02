@@ -137,10 +137,10 @@ export function renderProducts(products) {
   `).join('');
 }
 
-export function renderRecipes(recipes) {
+export function renderRecipes(dishes) {
   const el = document.getElementById('recipesList');
 
-  el.innerHTML = recipes.map(r => {
+  el.innerHTML = dishes.map(r => {
     const versionsCount = r.recipe_versions?.length || 0;
 
     const mainVersion = r.recipe_versions?.find(v => v.id === r.main_version_id);
@@ -157,7 +157,7 @@ export function renderRecipes(recipes) {
 function renderMenuItem(i) {
   const name =
     i.item_type === 'recipe'
-      ? state.recipes.find(r => r.id === i.recipe_id)?.name
+      ? state.dishes.find(r => r.id === i.recipe_id)?.name
       : state.products.find(p => p.id === i.product_id)?.name;
 
   const qty = i.item_type === 'recipe' ? i.portions : i.quantity;
@@ -183,36 +183,28 @@ function renderMenuItem(i) {
   `;
 }
 
-export function renderInventory(dishes) {
+export function renderInventory(inventory) {
   const el = document.getElementById('inventory');
 
-  if (!el) {
-    console.warn('inventory element not found');
-    return;
-  }
-  
-  el.innerHTML = '';
+  if (!el) return;
+
+  const dishes = inventory.dishes;
 
   if (!dishes.length) {
     el.innerHTML = '<p>Склад порожній</p>';
     return;
   }
 
-  dishes.forEach(d => {
-    const div = document.createElement('div');
-    div.className = 'inventory-item';
-
-    div.innerHTML = `
+  el.innerHTML = dishes.map(d => `
+    <div class="inventory-item">
       <div>
         <b>${d.dishes?.name || 'Без назви'}</b>
       </div>
       <div>
         ${Number(d.portions).toFixed(1)} порцій
       </div>
-    `;
-
-    el.appendChild(div);
-  });
+    </div>
+  `).join('');
 }
 
 export function renderShopping(items) {
