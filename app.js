@@ -66,7 +66,7 @@ async function loadAppData(force = false) {
       state.familyId = family.id;
     }
 
-     const data = await api.loadAppData(state.familyId);
+    //const data = await api.loadAppData(state.familyId);
 
     state.products = data.products;
     state.recipes = data.recipes;
