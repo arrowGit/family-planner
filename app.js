@@ -357,7 +357,7 @@ async function upsertMenuItem({ type, id, qty, meal, date }) {
     quantity: type === 'product' ? qty : null,
     portions: type === 'recipe' ? qty : null,
     meal,
-    user_id: state.user.id
+    created_by: state.user.id
   });
 
   await loadDay(date);
@@ -383,7 +383,7 @@ async function onAddProduct() {
     user_id: state.user.id
   });
 
-  state.products = await api.getProducts();
+  state.products = await api.getProducts(state.familyId);
   ui.renderProducts(state.products);
 }
 
@@ -424,7 +424,7 @@ async function onSaveProduct() {
     });
   }
 
-  state.products = await api.getProducts();
+  state.products = await api.getProducts(state.familyId);
   ui.renderProducts(state.products);
 
   closeProductModal();
@@ -435,7 +435,7 @@ window.deleteProduct = async (id) => {
 
   await api.deleteProduct(id);
 
-  state.products = await api.getProducts();
+  state.products = await api.getProducts(state.familyId);
   ui.renderProducts(state.products);
 };
 
@@ -614,7 +614,7 @@ async function onAddRecipe() {
     user_id: state.user.id
   });
 
-  state.recipes = await api.getRecipes();
+  state.recipes = await api.getRecipes(state.familyId);
   ui.renderRecipes(state.recipes);
 }
 
