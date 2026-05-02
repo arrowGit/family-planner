@@ -119,18 +119,18 @@ function bindUI() {
     }
   });
   document.getElementById('prevVersionBtn')?.addEventListener('click', () => {
-    const versions = state.viewRecipe.recipe_versions;
+    const versions = state.viewRecipe.recipe_variants;
     state.viewVersionIndex = (state.viewVersionIndex - 1 + versions.length) % versions.length;
     renderRecipeView();
   });
   document.getElementById('editVersionBtn')?.addEventListener('click', () => {
     const recipe = state.viewRecipe;
-    const version = recipe.recipe_versions[state.viewVersionIndex];
+    const version = recipe.recipe_variants[state.viewVersionIndex];
     closeRecipeViewModal();
     openRecipeModal(recipe, version);
   });
   document.getElementById('nextVersionBtn')?.addEventListener('click', () => {
-    const versions = state.viewRecipe.recipe_versions;
+    const versions = state.viewRecipe.recipe_variants;
     state.viewVersionIndex = (state.viewVersionIndex + 1) % versions.length;
     renderRecipeView();
   });
@@ -140,7 +140,7 @@ function bindUI() {
   });
   document.getElementById('makeMainBtn')?.addEventListener('click', async () => {
     const recipe = state.viewRecipe;
-    const version = recipe.recipe_versions[state.viewVersionIndex];
+    const version = recipe.recipe_variants[state.viewVersionIndex];
     await api.setMainRecipeVersion(recipe.id, version.id);
     // оновити локально
     recipe.main_version_id = version.id;
@@ -483,7 +483,7 @@ function openRecipeView(recipe) {
   state.viewRecipe = recipe;
 
   // знайти індекс main версії
-  const idx = recipe.recipe_versions.findIndex(
+  const idx = recipe.recipe_variants.findIndex(
     v => v.id === recipe.main_version_id
   );
 
@@ -496,7 +496,7 @@ function openRecipeView(recipe) {
 
 function renderRecipeView() {
   const recipe = state.viewRecipe;
-  const versions = recipe.recipe_versions || [];
+  const versions = recipe.recipe_variants || [];
 
   if (versions.length === 0) return;
 
@@ -517,7 +517,7 @@ function renderRecipeView() {
 }
 
 async function renderViewIngredients(versionId) {
-  const ingredients = await api.getIngredientsByVersion(versionId);
+  const ingredients = await api.getIngredientsByVariant(versionId);
 
   const el = document.getElementById('viewIngredients');
 
@@ -545,7 +545,7 @@ async function openRecipeModal(recipe = null, version = null) {
     // 🔥 редагування конкретної версії
     document.getElementById('recipePortions').value = version.portions;
 
-    const ingredients = await api.getIngredientsByVersion(version.id);
+    const ingredients = await api.getIngredientsByVariant(version.id);
 
     state.recipeDraft = ingredients.map(i => ({
       product_id: i.product_id,
@@ -630,12 +630,12 @@ async function onAddRecipe() {
     return;
   }
 
-  await api.addRecipe({
+  await api.addDish({
     name,
     user_id: state.user.id
   });
 
-  state.dishes = await api.getRecipes(state.familyId);
+  state.dishes = await api.getDish(state.familyId);
   ui.renderRecipes(state.dishes);
 }
 
@@ -657,7 +657,7 @@ async function onSaveRecipe() {
   }
 
   if (!recipe) {
-    const created = await api.addRecipe({
+    const created = await api.addDish({
       name,
       user_id: state.user.id
     });
@@ -681,7 +681,7 @@ async function onSaveRecipe() {
   if (overwrite && version) {
     // ♻️ OVERWRITE
 
-    await api.deleteIngredientsByVersion(version.id);
+    await api.deleteIngredientsByVariant(version.id);
 
     const ingredients = state.recipeDraft.map(i => ({
       recipe_version_id: version.id,
@@ -689,16 +689,16 @@ async function onSaveRecipe() {
       quantity: i.quantity
     }));
 
-    await api.addRecipeIngredients(ingredients);
+    await api.addIngredients(ingredients);
 
-    await api.updateRecipeVersion(version.id, {
+    await api.updateRecipeVariant(version.id, {
       portions
     });
 
   } else {
     // 🆕 NEW VERSION
 
-    const newVersion = await api.createRecipeVersion(
+    const newVersion = await api.createRecipeVariant(
       recipe.id,
       state.user.id,
       portions
@@ -710,10 +710,10 @@ async function onSaveRecipe() {
       quantity: i.quantity
     }));
 
-    await api.addRecipeIngredients(ingredients);
+    await api.addIngredients(ingredients);
   }
 
-  const updatedRecipes = await api.getRecipes(state.familyId);
+  const updatedRecipes = await api.getDish(state.familyId);
   state.dishes = updatedRecipes;
 
   const fresh = updatedRecipes.find(r => r.id === recipe.id);
