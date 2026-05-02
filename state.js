@@ -1,17 +1,22 @@
 export const state = {
   user: null,
   familyId: null,
+
   products: [],
-  recipes: [],
-  menu: [],
-  pantry: [],
-  currentRecipe: null,
+  dishes: [],
+
+  inventory: {
+    products: [],
+    dishes: []
+  },
+
+  // UI state
   editingProduct: null,
   editingRecipe: null,
   editingVersion: null,
+
   recipeDraft: [],
-  currentVersions: [],
-  currentVersionIndex: 0,
+
   viewRecipe: null,
   viewVersionIndex: 0
 };
