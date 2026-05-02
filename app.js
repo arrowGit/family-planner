@@ -66,12 +66,14 @@ async function loadAppData(force = false) {
       state.familyId = family.id;
     }
 
-    const data = await api.loadAppData(state.familyId);
-
+    const data = await api.loadAppData(state.familyId, state.user.id);
+     
     state.products = data.products;
-    state.recipes = data.recipes;
-    state.inventory = data.inventory;
-
+    state.recipes = data.dishes;
+    state.inventory = {
+      products: data.inventoryProducts,
+      dishes: data.inventoryDishes
+    };
     appLoaded = true;
 
     renderApp();
@@ -186,7 +188,7 @@ function closeRecipeViewModal() {
 function resetState() {
   state.products = [];
   state.recipes = [];
-  state.inventory = [];
+  state.inventory = {};
   appLoaded = false;
 }
 
