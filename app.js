@@ -44,55 +44,50 @@ init();
 ========================= */
 
 async function loadAppData(force = false) {
-  if (loading) return;
+  if (state.ui.loading) return;
   if (appLoaded && !force) return;
 
-  if (!state.user?.id) {
-    console.warn('⛔ user_id відсутній');
-    return;
-  }
-  loading = true;
+  if (!state.user?.id) return;
+
+  state.ui.loading = true;
+
   try {
-    console.log((await supabase.auth.getSession()).data.session)
     const family = await api.getMyFamily();
+
     if (!family) {
-      console.log('🏠 Створюємо сімʼю...');
-   
       const created = await api.createFamily();
-   
       state.familyId = created.id;
-   
     } else {
       state.familyId = family.id;
     }
 
     const data = await api.loadAppData(state.familyId, state.user.id);
-     
+
     state.products = data.products;
-    state.recipes = data.dishes;
-    state.inventory = {
-      products: data.inventoryProducts,
-      dishes: data.inventoryDishes
-    };
+    state.dishes = data.dishes; // 🔥 FIX
+    state.inventory.products = data.inventoryProducts;
+    state.inventory.dishes = data.inventoryDishes;
+
     appLoaded = true;
 
     renderApp();
     initTabs();
+
     ui.renderCalendar();
-   
+
+    const today = new Date().toISOString().slice(0,10);
+    state.menu.currentDate = today;
+
     const dateInput = document.getElementById('date');
-   
-    if (dateInput) {
-      const today = new Date().toISOString().slice(0,10);
-      dateInput.value = today;
-      await loadDay(today);
-    }
-     
+    if (dateInput) dateInput.value = today;
+
+    await loadDay(today);
+
   } catch (err) {
     console.error(err);
-    alert('Помилка завантаження даних');
+    alert('Помилка завантаження');
   } finally {
-     loading = false;
+    state.ui.loading = false;
   }
 }
 
@@ -171,7 +166,7 @@ function bindRecipeClicks() {
     if (!el) return;
 
     const id = el.dataset.id;
-    const recipe = state.recipes.find(r => r.id === id);
+    const recipe = state.dishes.find(r => r.id === id);
 
     if (recipe) openRecipeView(recipe);
   };
@@ -187,8 +182,19 @@ function closeRecipeViewModal() {
 
 function resetState() {
   state.products = [];
-  state.recipes = [];
-  state.inventory = {};
+  state.dishes = [];
+  state.shopping = [];
+
+  state.inventory = {
+    products: [],
+    dishes: []
+  };
+
+  state.menu = {
+    currentDate: null,
+    currentDay: null
+  };
+
   appLoaded = false;
 }
 
@@ -198,7 +204,7 @@ function resetState() {
 
 function renderApp() {
   ui.renderProducts(state.products);
-  ui.renderRecipes(state.recipes);
+  ui.renderRecipes(state.dishes);
   bindRecipeClicks();
   ui.renderInventory(state.inventory);
   bindUI();
@@ -229,6 +235,10 @@ function initTabs() {
 
 async function loadDay(date) {
   const data = await api.getMenuByDate(date, state.familyId);
+
+  state.menu.currentDate = date;
+  state.menu.currentDay = data;
+
   ui.renderMenu(data);
 }
 
@@ -239,7 +249,12 @@ window.loadDay = loadDay;
 ========================= */
 
 async function refreshInventory() {
-  state.inventory = await api.getInventory(state.familyId);
+  const products = await api.getInventoryProducts(state.familyId);
+  const dishes = await api.getInventoryDishes(state.familyId);
+
+  state.inventory.products = products;
+  state.inventory.dishes = dishes;
+
   ui.renderInventory(state.inventory);
 }
 
@@ -292,7 +307,7 @@ async function onSaveMenuItem() {
     type,
     id,
     qty,
-    meal: currentMeal,
+    meal: state.ui.currentMeal,
     date
   });
 
@@ -318,13 +333,9 @@ async function onCalcShopping() {
   ui.renderShopping(items);
 }
 
-let currentMeal = null;
-
 window.openAddModal = (meal) => {
-  currentMeal = meal;
-
+  state.ui.currentMeal = meal;
   document.getElementById('menuModal').style.display = 'flex';
-
   fillSelect();
 };
 
@@ -337,7 +348,7 @@ function fillSelect() {
   const select = document.getElementById('itemSelect');
 
   if (type === 'recipe') {
-    select.innerHTML = state.recipes.map(r =>
+    select.innerHTML = state.dishes.map(r =>
       `<option value="${r.id}">${r.name}</option>`
     ).join('');
   } else {
@@ -605,7 +616,7 @@ window.removeIngredient = (index) => {
 };
 
 window.editRecipe = (id) => {
-  const recipe = state.recipes.find(r => r.id === id);
+  const recipe = state.dishes.find(r => r.id === id);
   openRecipeModal(recipe);
 };
 
@@ -622,8 +633,8 @@ async function onAddRecipe() {
     user_id: state.user.id
   });
 
-  state.recipes = await api.getRecipes(state.familyId);
-  ui.renderRecipes(state.recipes);
+  state.dishes = await api.getRecipes(state.familyId);
+  ui.renderRecipes(state.dishes);
 }
 
 async function onSaveRecipe() {
@@ -701,10 +712,10 @@ async function onSaveRecipe() {
   }
 
   const updatedRecipes = await api.getRecipes(state.familyId);
-  state.recipes = updatedRecipes;
+  state.dishes = updatedRecipes;
 
   const fresh = updatedRecipes.find(r => r.id === recipe.id);
-  ui.renderRecipes(state.recipes);
+  ui.renderRecipes(state.dishes);
 
   closeRecipeModal();
   // 🔥 відкрити назад перегляд рецепта
