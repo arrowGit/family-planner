@@ -100,8 +100,8 @@ function renderMenuItem(i) {
   const isRecipe = !!i.recipe_id;
 
   const name = isRecipe
-    ? state.dishes.find(d => d.id === i.dish_id)?.name || '❓'
-    : state.products.find(p => p.id === i.product_id)?.name || '❓';
+    ? i.dishes?.name || '❓'
+    : i.products?.name || '❓';
 
   const qty = isRecipe ? i.portions : i.quantity;
 
@@ -112,11 +112,11 @@ function renderMenuItem(i) {
       <div>
         ${
           isRecipe
-            ? `<button onclick="cook('${i.recipe_id}', ${qty})">🍳</button>`
+            ? `<button onclick="cook('${i.recipe_id}', '${i.dish_id}', ${qty})">🍳</button>`
             : ''
         }
 
-        <button onclick="consume('${i.product_id}', '${i.recipe_id}', ${qty})">
+        <button onclick="consume('${i.product_id}', '${i.recipe_id}', '${i.dish_id}', ${qty})">
           ✔
         </button>
       </div>
@@ -151,7 +151,7 @@ export function renderRecipes(dishes) {
   const el = document.getElementById('recipesList');
 
   el.innerHTML = dishes.map(d => {
-    const versions = d.recipe_versions || [];
+    const versions = d.recipe_variants || [];
     const main = versions.find(v => v.is_primary);
 
     return `
