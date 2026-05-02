@@ -46,13 +46,15 @@
     </div>
 
     <!-- INVENTORY -->
-    <div class="subtabs">
-      <button data-subtab="products" class="active">🥕 Продукти</button>
-      <button data-subtab="dishes">🍲 Страви</button>
+    <div id="tab-inventory" class="tab" style="display:none;">
+      <div class="subtabs">
+        <button data-subtab="products" class="active">🥕 Продукти</button>
+        <button data-subtab="dishes">🍲 Страви</button>
+      </div>
+
+      <div id="inventoryProducts"></div>
+      <div id="inventoryDishes" style="display:none;"></div>
     </div>
-    
-    <div id="inventoryProducts"></div>
-    <div id="inventoryDishes" style="display:none;"></div>
 
     <!-- SHOPPING -->
     <div id="tab-shopping" class="tab" style="display:none;">
