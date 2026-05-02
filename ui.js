@@ -185,6 +185,12 @@ function renderMenuItem(i) {
 
 export function renderInventory(dishes) {
   const el = document.getElementById('inventory');
+
+  if (!el) {
+    console.warn('inventory element not found');
+    return;
+  }
+  
   el.innerHTML = '';
 
   if (!dishes.length) {
