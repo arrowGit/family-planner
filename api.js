@@ -383,7 +383,7 @@ export function getShoppingList(family_id, from, to) {
    APP LOAD
 ========================= */
 
-export async function loadAppData(family_id, user_id) {
+export async function getAppData(family_id, user_id) {
   const [
     products,
     dishes,
