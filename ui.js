@@ -24,16 +24,29 @@ export function renderAuth() {
       state.user.user_metadata?.full_name ||
       state.user.email;
 
+   const activeFamily = state.families.find(f => f.id === state.activeFamilyId);
+  
+   const familySelector =
+     state.families.length === 1
+       ? `<b>${activeFamily.name}</b>`
+       : `
+         <select id="familySelect">
+           ${state.families.map(f => `
+             <option value="${f.id}" ${f.id === state.activeFamilyId ? 'selected' : ''}>
+               ${f.name}
+             </option>
+           `).join('')}
+         </select>
+       `;
+  
     document.getElementById('topbar').innerHTML = `
+      <div>${familySelector}</div>
+  
       <div class="user-info">
-        <span>👤 ${name}</span>
+        <span id="profileBtn">👤 ${name}</span>
         <button id="logoutBtn">Вийти</button>
       </div>
     `;
-
-    document.getElementById('logoutBtn').onclick = async () => {
-      await api.logout();
-    };
 
   } else {
     appEl.style.display = 'none';
@@ -52,6 +65,31 @@ export function renderAuth() {
   }
 }
 
+export function renderNoFamily() {
+  document.getElementById('app').style.display = 'none';
+
+  document.getElementById('auth').innerHTML = `
+    <div class="login-box">
+      <h3>Ласкаво просимо 👋</h3>
+
+      <p>У вас ще немає сім’ї</p>
+
+      <button id="createFamilyBtn">➕ Створити сім’ю</button>
+
+      <hr>
+
+      <p>Або приєднатись:</p>
+      <input id="familyInviteInput" placeholder="ID або код">
+      <button id="joinFamilyBtn">Приєднатись</button>
+    </div>
+  `;
+
+  document.getElementById('createFamilyBtn').onclick = async () => {
+    const family = await api.createFamily();
+    location.reload();
+  };
+}
+
 function bindAuthEvents() {
   document.getElementById('emailLoginBtn').onclick = async () => {
     const email = document.getElementById('emailInput').value;
@@ -67,6 +105,13 @@ function bindAuthEvents() {
   document.getElementById('googleLoginBtn').onclick = async () => {
     await api.loginWithGoogle();
   };
+
+  document.getElementById('familySelect')?.addEventListener('change', async (e) => {
+    state.activeFamilyId = e.target.value;
+    localStorage.setItem('familyId', state.activeFamilyId);
+
+    await loadAppData(true);
+  });
 }
 
 /* =========================
