@@ -377,8 +377,8 @@ async function upsertMenuItem({ type, id, qty, meal, date }) {
     recipe_id: type === 'recipe' ? id : null,
     quantity: type === 'product' ? qty : null,
     portions: type === 'recipe' ? qty : null,
-    meal,
-    created_by: state.user.id
+    //created_by: state.user.id,
+    meal
   });
 
   await loadDay(date);
