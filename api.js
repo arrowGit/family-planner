@@ -124,7 +124,10 @@ export function getDishes(user_id) {
   return handle(
     supabase
       .from('dishes')
-      .select('*')
+      .select(`
+        *,
+        recipe_variants (*)
+      `)
       .eq('created_by', user_id)
       .order('name')
   );
