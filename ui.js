@@ -110,7 +110,7 @@ function bindAuthEvents() {
     state.activeFamilyId = e.target.value;
     localStorage.setItem('familyId', state.activeFamilyId);
 
-    await loadAppData(true);
+    location.reload();
   });
 }
 
