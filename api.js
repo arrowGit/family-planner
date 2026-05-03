@@ -24,71 +24,27 @@ export async function getSession() {
   return data.session?.user || null;
 }
 
-export async function logout() {
+export function logout() {
   return supabase.auth.signOut();
 }
 
-export async function loginWithEmail(email) {
+export function loginWithEmail(email) {
   return supabase.auth.signInWithOtp({
     email,
-    options: {
-      emailRedirectTo: location.origin
-    }
+    options: { emailRedirectTo: location.origin }
   });
 }
 
-export async function loginWithGoogle() {
+export function loginWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: location.origin
-    }
+    options: { redirectTo: location.origin }
   });
 }
 
 /* =========================
    FAMILY
 ========================= */
-
-export async function createFamily(name = 'My family') {
-  const { data, error } = await supabase
-    .from('families')
-    .insert({ name })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  await supabase.from('family_members').insert({
-    family_id: data.id,
-    user_id: (await getSession()).id,
-    role: 'owner',
-    status: 'active'
-  });
-
-  return data;
-}
-
-export async function getMyFamily() {
-  const { data, error } = await supabase
-    .from('family_members')
-    .select(`
-      family_id,
-      families (
-        id,
-        name
-      )
-    `)
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) return null;
-
-  return {
-    id: data.family_id,
-    name: data.families?.name
-  };
-}
 
 export function getMyFamilies() {
   return handle(
@@ -97,11 +53,7 @@ export function getMyFamilies() {
       .select(`
         family_id,
         role,
-        families (
-          id,
-          name,
-          owner_id
-        )
+        families (id, name)
       `)
       .eq('status', 'active')
   );
@@ -118,9 +70,7 @@ export function getProducts() {
 }
 
 export function addProduct(data) {
-  return handle(
-    supabase.from('products').insert(data)
-  );
+  return handle(supabase.from('products').insert(data));
 }
 
 export function updateProduct(id, data) {
@@ -158,31 +108,9 @@ export function addDish(data) {
   );
 }
 
-export function updateDish(id, data) {
-  return handle(
-    supabase.from('dishes').update(data).eq('id', id)
-  );
-}
-
-export function deleteDish(id) {
-  return handle(
-    supabase.from('dishes').delete().eq('id', id)
-  );
-}
-
 /* =========================
    RECIPE VARIANTS
 ========================= */
-
-export function getRecipeVariants(dish_id) {
-  return handle(
-    supabase
-      .from('recipe_variants')
-      .select('*')
-      .eq('dish_id', dish_id)
-      .order('created_at')
-  );
-}
 
 export async function createRecipeVariant(dish_id, portions) {
   const user = await getSession();
@@ -202,10 +130,7 @@ export async function createRecipeVariant(dish_id, portions) {
 
 export function updateRecipeVariant(id, data) {
   return handle(
-    supabase
-      .from('recipe_variants')
-      .update(data)
-      .eq('id', id)
+    supabase.from('recipe_variants').update(data).eq('id', id)
   );
 }
 
@@ -259,19 +184,6 @@ export function getMenuByDate(date, family_id) {
   );
 }
 
-export function upsertMenuDay(date, family_id) {
-  return handle(
-    supabase
-      .from('menu_days')
-      .upsert(
-        { date, family_id },
-        { onConflict: 'family_id,date' }
-      )
-      .select()
-      .single()
-  );
-}
-
 export function addMenuItem(payload) {
   return handle(
     supabase.from('menu_items').insert(payload)
@@ -305,10 +217,9 @@ export function getInventoryDishes(family_id) {
 }
 
 /* =========================
-   ACTIONS (КЛЮЧОВЕ 🔥)
+   ACTIONS
 ========================= */
 
-// 🍳 ГОТУВАННЯ = додати dish у склад
 export function cookDish({ family_id, dish_id, recipe_id, portions }) {
   return handle(
     supabase.from('inventory_movements').insert({
@@ -321,7 +232,6 @@ export function cookDish({ family_id, dish_id, recipe_id, portions }) {
   );
 }
 
-// ✔ СПОЖИВАННЯ ОДНОГО ITEM (з меню)
 export async function consumeItem({
   family_id,
   product_id,
@@ -353,16 +263,6 @@ export async function consumeItem({
   }
 
   throw new Error('Invalid consume payload');
-}
-
-// 🍽 СПОЖИТИ ВЕСЬ ДЕНЬ
-export function consumeDay(family_id, menu_day_id) {
-  return handle(
-    supabase.rpc('consume_from_menu', {
-      p_family_id: family_id,
-      p_menu_day_id: menu_day_id
-    })
-  );
 }
 
 /* =========================
