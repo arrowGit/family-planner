@@ -7,9 +7,7 @@ let tabsInitialized = false;
 let uiBound = false;
 let appLoaded = false;
 
-/* =========================
-   INIT
-========================= */
+/* ========================= INIT ========================= */
 
 async function init() {
   const { data } = await supabase.auth.getSession();
@@ -17,24 +15,18 @@ async function init() {
 
   ui.renderAuth();
 
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  supabase.auth.onAuthStateChange(async (_, session) => {
     state.user = session?.user || null;
-
     ui.renderAuth();
 
-    if (state.user) {
-      await loadAppData(true);
-    } else {
-      resetState();
-    }
+    if (state.user) await loadAppData(true);
+    else resetState();
   });
 }
 
 init();
 
-/* =========================
-   LOAD
-========================= */
+/* ========================= LOAD ========================= */
 
 async function loadAppData(force = false) {
   if (state.ui.loading) return;
@@ -80,6 +72,8 @@ async function loadAppData(force = false) {
     initTabs();
 
     const today = new Date().toISOString().slice(0, 10);
+    state.menu.currentDate = today;
+
     await loadDay(today);
 
   } catch (e) {
@@ -90,42 +84,38 @@ async function loadAppData(force = false) {
   }
 }
 
-/* =========================
-   RENDER
-========================= */
+/* ========================= UI ========================= */
 
 function renderApp() {
   ui.renderProducts(state.products);
   ui.renderRecipes(state.dishes);
   ui.renderInventory(state.inventory);
-  bindRecipeClicks();
   bindUI();
 }
 
-/* =========================
-   UI
-========================= */
+/* ========================= TABS ========================= */
 
-function bindUI() {
-  if (uiBound) return;
-  uiBound = true;
+function initTabs() {
+  if (tabsInitialized) return;
+  tabsInitialized = true;
 
-  document.getElementById('profileBtn')?.addEventListener('click', openProfile);
+  const buttons = document.querySelectorAll('#tabs button');
 
-  document.getElementById('saveProfileBtn').onclick = async () => {
-    const name = document.getElementById('profileName').value;
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-    await supabase.auth.updateUser({
-      data: { full_name: name }
-    });
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.style.display = 'none';
+      });
 
-    location.reload();
-  };
+      document.getElementById(`tab-${btn.dataset.tab}`).style.display = 'block';
+    };
+  });
 }
 
-/* =========================
-   MENU
-========================= */
+/* ========================= MENU ========================= */
 
 async function loadDay(date) {
   const data = await api.getMenuByDate(date, state.activeFamilyId);
@@ -138,88 +128,7 @@ async function loadDay(date) {
 
 window.loadDay = loadDay;
 
-/* =========================
-   INVENTORY
-========================= */
-
-async function refreshInventory() {
-  state.inventory.products = await api.getInventoryProducts(state.activeFamilyId);
-  state.inventory.dishes = await api.getInventoryDishes(state.activeFamilyId);
-
-  ui.renderInventory(state.inventory);
-}
-
-/* =========================
-   ACTIONS
-========================= */
-
-window.consume = async (product_id, recipe_id, dish_id, qty) => {
-  await api.consumeItem({
-    family_id: state.activeFamilyId,
-    product_id,
-    recipe_id,
-    dish_id,
-    quantity: qty
-  });
-
-  await refreshInventory();
-  await loadDay(state.menu.currentDate);
-};
-
-window.cook = async (recipe_id, dish_id, portions) => {
-  await api.cookDish({
-    family_id: state.activeFamilyId,
-    dish_id,
-    recipe_id,
-    portions
-  });
-
-  await refreshInventory();
-  await loadDay(state.menu.currentDate);
-};
-
-/* =========================
-   RECIPE CLICK
-========================= */
-
-function bindRecipeClicks() {
-  document.getElementById('recipesList').onclick = (e) => {
-    const el = e.target.closest('.recipe-item');
-    if (!el) return;
-
-    const recipe = state.dishes.find(r => r.id === el.dataset.id);
-    if (recipe) openRecipeView(recipe);
-  };
-}
-
-/* =========================
-   PROFILE
-========================= */
-
-function openProfile() {
-  const user = state.user;
-
-  document.getElementById('profileModal').style.display = 'flex';
-  document.getElementById('profileName').value =
-    user.user_metadata?.full_name || '';
-
-  document.getElementById('profileEmail').innerText = user.email;
-
-  document.getElementById('profileFamilies').innerHTML =
-    state.families.map(f => `
-      <div>
-        ${f.name} ${f.role === 'owner' ? '⭐' : ''}
-      </div>
-    `).join('');
-}
-
-window.closeProfile = () => {
-  document.getElementById('profileModal').style.display = 'none';
-};
-
-/* =========================
-   RESET
-========================= */
+/* ========================= RESET ========================= */
 
 function resetState() {
   state.products = [];
