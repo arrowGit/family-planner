@@ -73,7 +73,7 @@ async function loadAppData(force = false) {
    
     localStorage.setItem('familyId', state.activeFamilyId);
    
-    await loadAppData(state.activeFamilyId, state.user.id);
+    const data = await api.getAppData(state.activeFamilyId);
     state.products = data.products;
     state.dishes = data.dishes; // 🔥 FIX
     state.inventory.products = data.inventoryProducts;
@@ -165,7 +165,7 @@ function bindUI() {
     loadDay(e.target.value);
   });
 
-  document.getElementById('profileBtn').onclick = openProfile;
+  document.getElementById('profileBtn')?.addEventListener('click', openProfile);
   document.getElementById('saveProfileBtn').onclick = async () => {
   const name = document.getElementById('profileName').value;
 
@@ -254,7 +254,7 @@ function initTabs() {
 ========================= */
 
 async function loadDay(date) {
-  const data = await api.getMenuByDate(date, state.familyId);
+  const data = await api.getMenuByDate(date, state.activeFamilyId);
 
   state.menu.currentDate = date;
   state.menu.currentDay = data;
@@ -269,8 +269,8 @@ window.loadDay = loadDay;
 ========================= */
 
 async function refreshInventory() {
-  const products = await api.getInventoryProducts(state.familyId);
-  const dishes = await api.getInventoryDishes(state.familyId);
+  const products = await api.getInventoryProducts(state.activeFamilyId);
+  const dishes = await api.getInventoryDishes(state.activeFamilyId);
 
   state.inventory.products = products;
   state.inventory.dishes = dishes;
@@ -284,7 +284,7 @@ async function refreshInventory() {
 
 window.consume = async (product_id, recipe_id, dish_id, qty) => {
   await api.consumeItem({
-    family_id: state.familyId,
+    family_id: state.activeFamilyId,
     product_id,
     recipe_id,
     dish_id,
@@ -298,7 +298,7 @@ window.consume = async (product_id, recipe_id, dish_id, qty) => {
 
 window.cook = async (recipe_id, dish_id, portions) => {
   await api.cookDish({
-    family_id: state.familyId,
+    family_id: state.activeFamilyId,
     dish_id,
     recipe_id,
     portions
@@ -347,7 +347,7 @@ async function onCalcShopping() {
     return;
   }
   const items = await api.getShoppingList(
-    state.familyId,
+    state.activeFamilyId,
     date,
     date
   );
@@ -384,7 +384,7 @@ async function upsertMenuItem({ type, id, qty, meal, date }) {
   const { data: day } = await supabase
     .from('menu_days')
     .upsert(
-      { date, family_id: state.familyId },
+      { date, family_id: state.activeFamilyId },
       { onConflict: 'family_id,date' }
     )
     .select()
@@ -424,7 +424,7 @@ async function onAddProduct() {
     user_id: state.user.id
   });
 
-  state.products = await api.getProducts(state.familyId);
+  state.products = await api.getProducts(state.activeFamilyId);
   ui.renderProducts(state.products);
 }
 
@@ -465,7 +465,7 @@ async function onSaveProduct() {
     });
   }
 
-  state.products = await api.getProducts(state.familyId);
+  state.products = await api.getProducts(state.activeFamilyId);
   ui.renderProducts(state.products);
 
   closeProductModal();
@@ -476,7 +476,7 @@ window.deleteProduct = async (id) => {
 
   await api.deleteProduct(id);
 
-  state.products = await api.getProducts(state.familyId);
+  state.products = await api.getProducts(state.activeFamilyId);
   ui.renderProducts(state.products);
 };
 
@@ -655,7 +655,7 @@ async function onAddRecipe() {
     user_id: state.user.id
   });
 
-  state.dishes = await api.getDish(state.familyId);
+  state.dishes = await api.getDish(state.activeFamilyId);
   ui.renderRecipes(state.dishes);
 }
 
@@ -733,7 +733,7 @@ async function onSaveRecipe() {
     await api.addIngredients(ingredients);
   }
 
-  const updatedRecipes = await api.getDish(state.familyId);
+  const updatedRecipes = await api.getDish(state.activeFamilyId);
   state.dishes = updatedRecipes;
 
   const fresh = updatedRecipes.find(r => r.id === recipe.id);
