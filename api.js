@@ -218,7 +218,7 @@ export function getIngredientsByVariant(variant_id) {
     supabase
       .from('recipe_ingredients')
       .select('*')
-      .eq('recipe_id', variant_id)
+      .eq('recipe_version_id', variant_id)
   );
 }
 
@@ -233,7 +233,7 @@ export function deleteIngredientsByVariant(variant_id) {
     supabase
       .from('recipe_ingredients')
       .delete()
-      .eq('recipe_id', variant_id)
+      .eq('recipe_version_id', variant_id)
   );
 }
 
