@@ -52,17 +52,28 @@ async function loadAppData(force = false) {
   state.ui.loading = true;
 
   try {
-    const family = await api.getMyFamily();
-
-    if (!family) {
-      const created = await api.createFamily();
-      state.familyId = created.id;
-    } else {
-      state.familyId = family.id;
+    const families = await api.getMyFamilies();
+   
+    state.families = families.map(f => ({
+      id: f.family_id,
+      name: f.families.name,
+      role: f.role
+    }));
+   
+    if (state.families.length === 0) {
+      ui.renderNoFamily();
+      return;
     }
-
-    const data = await api.loadAppData(state.familyId, state.user.id);
-
+   
+    // вибір активної
+    state.activeFamilyId =
+      state.activeFamilyId ||
+      localStorage.getItem('familyId') ||
+      state.families[0].id;
+   
+    localStorage.setItem('familyId', state.activeFamilyId);
+   
+    await loadAppData(state.activeFamilyId, state.user.id);
     state.products = data.products;
     state.dishes = data.dishes; // 🔥 FIX
     state.inventory.products = data.inventoryProducts;
