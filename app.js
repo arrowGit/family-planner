@@ -105,6 +105,8 @@ async function loadAppData(force = false) {
 function bindUI() {
   if (uiBound) return;
   uiBound = true;
+
+  
  
   // ===== PRODUCTS =====
   document.getElementById('openAddProductBtn')?.addEventListener('click', () => openProductModal());
@@ -158,16 +160,23 @@ function bindUI() {
     renderRecipeView();
   });
 
-   
-   
-  // ===== MENU MODAL =====
-  //document.getElementById('saveMenuItemBtn')?.addEventListener('click', onSaveMenuItem);
-  //document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-
-  // ===== DATE =====
+     // ===== DATE =====
   document.getElementById('date')?.addEventListener('change', (e) => {
     loadDay(e.target.value);
   });
+
+  document.getElementById('profileBtn').onclick = openProfile;
+  document.getElementById('saveProfileBtn').onclick = async () => {
+  const name = document.getElementById('profileName').value;
+
+  await supabase.auth.updateUser({
+    data: { full_name: name }
+  });
+
+  alert('Збережено');
+  location.reload();
+};
+
 
 }
 
@@ -745,3 +754,29 @@ function closeRecipeModal() {
   document.getElementById('recipeName').value = '';
   document.getElementById('ingredientsList').innerHTML = '';
 }
+
+/* =========================
+   Profile
+========================= */
+function openProfile() {
+  const user = state.user;
+
+  document.getElementById('profileModal').style.display = 'flex';
+
+  document.getElementById('profileName').value =
+    user.user_metadata?.full_name || '';
+
+  document.getElementById('profileEmail').innerText = user.email;
+
+  document.getElementById('profileFamilies').innerHTML =
+    state.families.map(f => `
+      <div>
+        ${f.name}
+        ${f.role === 'owner' ? '⭐' : ''}
+      </div>
+    `).join('');
+}
+
+window.closeProfile = () => {
+  document.getElementById('profileModal').style.display = 'none';
+};
