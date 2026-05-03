@@ -61,7 +61,9 @@ export async function createFamily(name = 'My family') {
 
   await supabase.from('family_members').insert({
     family_id: data.id,
-    role: 'owner'
+    user_id: (await getSession()).id,
+    role: 'owner',
+    status: 'active'
   });
 
   return data;
@@ -86,6 +88,23 @@ export async function getMyFamily() {
     id: data.family_id,
     name: data.families?.name
   };
+}
+
+export function getMyFamilies() {
+  return handle(
+    supabase
+      .from('family_members')
+      .select(`
+        family_id,
+        role,
+        families (
+          id,
+          name,
+          owner_id
+        )
+      `)
+      .eq('status', 'active')
+  );
 }
 
 /* =========================
