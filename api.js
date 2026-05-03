@@ -1,51 +1,40 @@
 import { supabase } from './supabase.js';
 
-/* =========================
-   CORE
-========================= */
-
+/* ========================= CORE ========================= */
 async function handle(query) {
   const { data, error } = await query;
-
   if (error) {
     console.error(error);
     throw error;
   }
-
   return data;
 }
 
-/* =========================
-   AUTH
-========================= */
-
+/* ========================= AUTH ========================= */
 export async function getSession() {
   const { data } = await supabase.auth.getSession();
   return data.session?.user || null;
 }
 
-export function logout() {
+export async function logout() {
   return supabase.auth.signOut();
 }
 
-export function loginWithEmail(email) {
+export async function loginWithEmail(email) {
   return supabase.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: location.origin }
   });
 }
 
-export function loginWithGoogle() {
+export async function loginWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: location.origin }
   });
 }
 
-/* =========================
-   FAMILY
-========================= */
-
+/* ========================= FAMILY ========================= */
 export async function createFamily(name = 'My family') {
   const { data, error } = await supabase
     .from('families')
@@ -55,16 +44,32 @@ export async function createFamily(name = 'My family') {
 
   if (error) throw error;
 
-  const user = await getSession();
-
   await supabase.from('family_members').insert({
     family_id: data.id,
-    user_id: user.id,
+    user_id: (await getSession()).id,
     role: 'owner',
     status: 'active'
   });
 
   return data;
+}
+
+export async function getMyFamily() {
+  const { data, error } = await supabase
+    .from('family_members')
+    .select(`
+      family_id,
+      families ( id, name )
+    `)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.family_id,
+    name: data.families?.name
+  };
 }
 
 export function getMyFamilies() {
@@ -74,20 +79,13 @@ export function getMyFamilies() {
       .select(`
         family_id,
         role,
-        families (
-          id,
-          name,
-          owner_id
-        )
+        families ( id, name, owner_id )
       `)
       .eq('status', 'active')
   );
 }
 
-/* =========================
-   PRODUCTS
-========================= */
-
+/* ========================= PRODUCTS ========================= */
 export function getProducts() {
   return handle(
     supabase.from('products').select('*').order('name')
@@ -95,7 +93,9 @@ export function getProducts() {
 }
 
 export function addProduct(data) {
-  return handle(supabase.from('products').insert(data));
+  return handle(
+    supabase.from('products').insert(data)
+  );
 }
 
 export function updateProduct(id, data) {
@@ -110,15 +110,15 @@ export function deleteProduct(id) {
   );
 }
 
-/* =========================
-   DISHES
-========================= */
-
+/* ========================= DISHES ========================= */
 export function getDishes(user_id) {
   return handle(
     supabase
       .from('dishes')
-      .select(`*, recipe_variants (*)`)
+      .select(`
+        *,
+        recipe_variants (*)
+      `)
       .eq('created_by', user_id)
       .order('name')
   );
@@ -142,24 +142,28 @@ export function deleteDish(id) {
   );
 }
 
-export function setMainRecipeVersion(dish_id, version_id) {
-  return handle(
-    supabase
-      .from('dishes')
-      .update({ main_version_id: version_id })
-      .eq('id', dish_id)
-  );
-}
-
-/* =========================
-   RECIPE VARIANTS
-========================= */
-
-export function createRecipeVariant(dish_id, portions) {
+/* ========================= RECIPE VARIANTS ========================= */
+export function getRecipeVariants(dish_id) {
   return handle(
     supabase
       .from('recipe_variants')
-      .insert({ dish_id, portions })
+      .select('*')
+      .eq('dish_id', dish_id)
+      .order('created_at')
+  );
+}
+
+export async function createRecipeVariant(dish_id, portions) {
+  const user = await getSession();
+
+  return handle(
+    supabase
+      .from('recipe_variants')
+      .insert({
+        dish_id,
+        portions,
+        created_by: user.id
+      })
       .select()
       .single()
   );
@@ -167,14 +171,14 @@ export function createRecipeVariant(dish_id, portions) {
 
 export function updateRecipeVariant(id, data) {
   return handle(
-    supabase.from('recipe_variants').update(data).eq('id', id)
+    supabase
+      .from('recipe_variants')
+      .update(data)
+      .eq('id', id)
   );
 }
 
-/* =========================
-   INGREDIENTS
-========================= */
-
+/* ========================= INGREDIENTS ========================= */
 export function getIngredientsByVariant(variant_id) {
   return handle(
     supabase
@@ -199,10 +203,7 @@ export function deleteIngredientsByVariant(variant_id) {
   );
 }
 
-/* =========================
-   MENU
-========================= */
-
+/* ========================= MENU ========================= */
 export function getMenuByDate(date, family_id) {
   return handle(
     supabase
@@ -221,16 +222,26 @@ export function getMenuByDate(date, family_id) {
   );
 }
 
+export function upsertMenuDay(date, family_id) {
+  return handle(
+    supabase
+      .from('menu_days')
+      .upsert(
+        { date, family_id },
+        { onConflict: 'family_id,date' }
+      )
+      .select()
+      .single()
+  );
+}
+
 export function addMenuItem(payload) {
   return handle(
     supabase.from('menu_items').insert(payload)
   );
 }
 
-/* =========================
-   INVENTORY
-========================= */
-
+/* ========================= INVENTORY ========================= */
 export function getInventoryProducts(family_id) {
   return handle(
     supabase
@@ -253,10 +264,7 @@ export function getInventoryDishes(family_id) {
   );
 }
 
-/* =========================
-   ACTIONS
-========================= */
-
+/* ========================= ACTIONS ========================= */
 export function cookDish({ family_id, dish_id, recipe_id, portions }) {
   return handle(
     supabase.from('inventory_movements').insert({
@@ -269,29 +277,49 @@ export function cookDish({ family_id, dish_id, recipe_id, portions }) {
   );
 }
 
-export function consumeItem({
+export async function consumeItem({
   family_id,
   product_id,
   recipe_id,
   dish_id,
   quantity
 }) {
+  if (product_id) {
+    return handle(
+      supabase.from('inventory_movements').insert({
+        family_id,
+        product_id,
+        quantity: -quantity,
+        movement_type: 'consume'
+      })
+    );
+  }
+
+  if (recipe_id && dish_id) {
+    return handle(
+      supabase.from('inventory_movements').insert({
+        family_id,
+        dish_id,
+        recipe_id,
+        quantity: -quantity,
+        movement_type: 'consume'
+      })
+    );
+  }
+
+  throw new Error('Invalid consume payload');
+}
+
+export function consumeDay(family_id, menu_day_id) {
   return handle(
-    supabase.from('inventory_movements').insert({
-      family_id,
-      product_id,
-      dish_id,
-      recipe_id,
-      quantity: -quantity,
-      movement_type: 'consume'
+    supabase.rpc('consume_from_menu', {
+      p_family_id: family_id,
+      p_menu_day_id: menu_day_id
     })
   );
 }
 
-/* =========================
-   SHOPPING
-========================= */
-
+/* ========================= SHOPPING ========================= */
 export function getShoppingList(family_id, from, to) {
   return handle(
     supabase.rpc('get_shopping_list_v3', {
@@ -302,12 +330,14 @@ export function getShoppingList(family_id, from, to) {
   );
 }
 
-/* =========================
-   APP LOAD
-========================= */
-
+/* ========================= APP LOAD ========================= */
 export async function getAppData(family_id, user_id) {
-  const [products, dishes, invP, invD] = await Promise.all([
+  const [
+    products,
+    dishes,
+    inventoryProducts,
+    inventoryDishes
+  ] = await Promise.all([
     getProducts(),
     getDishes(user_id),
     getInventoryProducts(family_id),
@@ -317,7 +347,7 @@ export async function getAppData(family_id, user_id) {
   return {
     products,
     dishes,
-    inventoryProducts: invP,
-    inventoryDishes: invD
+    inventoryProducts,
+    inventoryDishes
   };
 }
