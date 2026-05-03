@@ -4,7 +4,9 @@ export const state = {
   ========================= */
   user: null,
   familyId: null,
-
+  families: [],
+  activeFamilyId: null,
+  
   /* =========================
      DATA
   ========================= */
